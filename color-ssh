@@ -1,0 +1,39 @@
+tab-color() {
+    echo -ne "\033]6;1;bg;red;brightness;$1\a"
+    echo -ne "\033]6;1;bg;green;brightness;$2\a"
+    echo -ne "\033]6;1;bg;blue;brightness;$3\a"
+}
+
+tab-reset() {
+    echo -ne "\033]6;1;bg;*;default\a"
+    printf "\e]1337;SetBadgeFormat=%s\a" $(echo "(done)" | base64)
+}
+
+# Change the color of the tab when using SSH
+# reset the color after the connection closes
+color-ssh() {
+    if [[ -n "$ITERM_SESSION_ID" ]]; then
+        trap "tab-reset" INT EXIT
+        if [[ "$*" =~ "works" ]]; then
+            tab-color 255 0 0
+        elif [[ "$*" =~ "machine-1" ]]; then
+	    tab-color 0 255 0
+        elif [[ "$*" =~ "machine-2" ]]; then
+	    tab-color 0 0 255
+        elif [[ "$*" =~ "machine-3" ]]; then
+	    tab-color 127 127 127
+        elif [[ "$*" =~ "machine-4" ]]; then
+	    tab-color 255 255 0
+        elif [[ "$*" =~ "machine-5" ]]; then
+	    tab-color 144 129 190
+	else
+            tab-reset
+        fi
+    fi
+    ## ssh $*
+
+    printf "\e]1337;SetBadgeFormat=%s\a" $(echo "$1" | base64)
+    ssh $1
+}
+
+color-ssh $1
