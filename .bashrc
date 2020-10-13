@@ -16,3 +16,6 @@ fi
 export PS1="[\u@\[$(tput sgr0)\]\[\033[38;5;46m\]\h\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]\[\033[38;5;75m\]\w\[$(tput sgr0)\]\[\033[38;5;15m\]] \\$ \[$(tput sgr0)\]"
 
 source ~/.tab.bash
+source ~/.git-completion.bash
+source ~/.color-tab.bash
+source ~/.git-aliases.bash
