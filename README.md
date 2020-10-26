@@ -1,8 +1,6 @@
-# dot-files
+# dot-files for Mac
 
-Some useful dot files and functions in order to use the shell more efficiently.
-
-The repo consists of a series of useful scripts which should be added to shell `rc` files (`.bashrc` of BASH and `.zshrc` for)
+This repo is used by me in order to set up Mac ZSH by installing some handy tools and scripts along with their plugins and aliases.
 
 ## Content
 
@@ -10,10 +8,22 @@ The main components in this repo are the hidden shell files and one config file 
 
 ## Installation
 
-TBA.
+1. Clone this repo to a proper place in your home directory.
+
+    ```sh
+    mkdir ~/.dot-files
+    cd ~/.dot-files
+    git clone git@github.com:zafatar/dot-files.git .
+    ```
+
+1. Run the installation script.
+
+    ```sh
+    ./install.sh
+    ```
 
 ## Future works
 
-- Add an installation script which makes the installation seamless.
+- (WIP) Add an installation script which makes the installation seamless.
 
-- Checks for the shell types (BASH or zsh)
+- (WIP) Checks for the shell types (BASH or zsh)
