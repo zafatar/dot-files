@@ -55,8 +55,8 @@
 (windmove-default-keybindings)
 (setq windmove-wrap-around t)
 
-(add-to-list 'load-path "/Users/zafer/.emacs.d/lisp")
-(add-to-list 'load-path "/Users/zafer/.emacs.d/org-mode/lisp")
+(add-to-list 'load-path "$HOME/.emacs.d/lisp")
+(add-to-list 'load-path "$HOME/.emacs.d/org-mode/lisp")
 (require 'auto-complete-config)
 ;; (ac-config-default)
 (custom-set-variables

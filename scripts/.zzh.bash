@@ -1,3 +1,7 @@
+# ----------------------------------
+# A custom way to ssh to the server.
+# ----------------------------------
+
 if [[ "$SHELL" =~ "bash" ]]; then
     declare -A ssh_connections
 elif [[ "$SHELL" =~ "zsh" ]]; then
@@ -6,20 +10,8 @@ else
     printf "This shell %s is not supported.\n" $SHELL
 fi
 
-input_file=$HOME'/.ssh_connection_list'
+input_file=$HOME'/.zzh.connections'
 max_string_size=0
-
-
-tab-color() {
-    echo -ne "\033]6;1;bg;red;brightness;$1\a"
-    echo -ne "\033]6;1;bg;green;brightness;$2\a"
-    echo -ne "\033]6;1;bg;blue;brightness;$3\a"
-}
-
-tab-reset() {
-    echo -ne "\033]6;1;bg;*;default\a"
-    printf "\e]1337;SetBadgeFormat=%s\a" $(echo "(done)" | base64)
-}
 
 read_config_file() {
     while IFS=$' ' read -r ssh_alias ssh_conn ;
@@ -82,6 +74,10 @@ zzh-list-zsh () {
     done | sort -n -k3
 }
 
+zzh-load() {
+    read_config_file $input_file
+}
+
 zzh() {
     if [[ -n "$ITERM_SESSION_ID" ]]; then
         trap "tab-reset" INT EXIT
@@ -90,12 +86,6 @@ zzh() {
         elif [[ "$*" =~ "prod" ]]; then
             tab-color 0 255 0
         elif [[ "$*" =~ "uat" ]]; then
-            tab-color 0 0 255
-        elif [[ "$*" == "audi" ]]; then
-            tab-color 0 0 255
-        elif [[ "$*" == "audi2" ]]; then
-            tab-color 0 0 255
-        elif [[ "$*" =~ "smart" ]]; then
             tab-color 0 0 255
         else
             tab-reset
@@ -107,4 +97,4 @@ zzh() {
 
 }
 
-read_config_file $input_file
+zzh-load()
