@@ -64,6 +64,3 @@ ln -s $HOME/.dot-files/editors/.emacs $HOME/.emacs
 
 printf "INFO: Creating the aliases.\n"
 source $HOME/.aliases.bash
-
-printf "INFO: Running the RC file.\n"
-source $HOME/.zshrc
