@@ -119,7 +119,9 @@ alias em="emacs -nw"
 alias mysql=/usr/local/bin/mysql
 alias mysqladmin=/usr/local/bin/mysqladmin
 
-source ~/.git-aliases.bash
+source ~/.aliases-git.bash
+
+# Only for Mac and iTerm.
 source ~/.color-tab.bash
 
 export PATH="/usr/local/sbin:$PATH"
@@ -140,25 +142,8 @@ prompt_context() {
     prompt_segment red white "$(date '+%Y-%m-%d %H:%M:%S') > $USER"
 }
 
-# GO GO GO
-export GOPATH="${HOME}/.go"
-
-export GOROOT="$(brew --prefix golang)/libexec"
-
-export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"
-
-test -d "${GOPATH}" || mkdir "${GOPATH}"
-
-test -d "${GOPATH}/src/github.com" || mkdir -p "${GOPATH}/src/github.com"
-
-### Java path
-export JAVA_HOME=$(/usr/libexec/java_home)
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
 fortune
+
 export PATH="/usr/local/opt/libpq/bin:$PATH"
 
 # tabtab source for packages
