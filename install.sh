@@ -55,6 +55,7 @@ rm -rf $HOME/.aliases-git.bash
 rm -rf $HOME/.completion-git.bash
 rm -rf $HOME/.zzh.bash
 rm -rf $HOME/.emacs
+rm -rf $HOME/.emacs.d/init.el
 
 printf "INFO: Creating the symlinks.\n"
 ln -s $HOME/.dot-files/scripts/.aliases.bash $HOME/.aliases.bash
