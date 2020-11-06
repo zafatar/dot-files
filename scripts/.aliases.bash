@@ -19,5 +19,7 @@ alias sls="screen -ls"
 # List the disks - Only for Linux-*
 alias lsdisk="lsblk -o UUID,NAME,FSTYPE,SIZE,MOUNTPOINT,LABEL,MODEL"
 
+alias ls='ls -la --color --quoting-style=literal'
+
 # Git Aliases.
 source $HOME/.aliases-git.bash
