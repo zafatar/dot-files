@@ -112,13 +112,7 @@ export PATH=/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/local/go/bin/:/op
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
-####
-alias ls="ls -GFlas"
-alias ll="ls -l"
-alias em="emacs -nw"
-alias mysql=/usr/local/bin/mysql
-alias mysqladmin=/usr/local/bin/mysqladmin
-
+# All aliases should be defined in one place.
 source ~/.aliases-git.bash
 
 # Only for Mac and iTerm.
