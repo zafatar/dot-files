@@ -1,4 +1,5 @@
 #!/bin/sh
+set -euo pipefail
 
 echo "Installing the dotfiles"
 
@@ -60,7 +61,9 @@ ln -s $HOME/.dot-files/scripts/.aliases.bash $HOME/.aliases.bash
 ln -s $HOME/.dot-files/scripts/.aliases-git.bash $HOME/.aliases-git.bash
 ln -s $HOME/.dot-files/scripts/.completion-git.bash $HOME/.completion-git.bash
 ln -s $HOME/.dot-files/scripts/.zzh.bash $HOME/.zzh.bash
-ln -s $HOME/.dot-files/editors/.emacs $HOME/.emacs
+ln -s $HOME/.dot-files/editors/emacs/init.el $HOME/.emacs.d/init.el
 
 printf "INFO: Creating the aliases.\n"
 source $HOME/.aliases.bash
+
+echo -e "\e[0;32mDone!\e[0m"
