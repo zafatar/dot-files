@@ -13,3 +13,8 @@ if test ! $(which zsh); then
     echo -e "INFO: Installing `zsh`\n"
     brew install zsh
 fi
+
+# TODO: Check if they are already there and installed.
+# Install emacs-plus
+brew tap d12frosted/emacs-plus
+brew install emacs-plus
