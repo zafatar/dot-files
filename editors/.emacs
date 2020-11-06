@@ -1,8 +1,8 @@
-
-;; Added by Package.el.  This must come before configurations of
-;; installed packages.  Don't delete this line.  If you don't want it,
-;; just comment it out by adding a semicolon to the start of the line.
-;; You may delete these explanatory comments.
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+;; Comment/uncomment this line to enable MELPA Stable if desired.  See `package-archive-priorities`
+;; and `package-pinned-packages`. Most users will not need or want to do this.
+;;(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (package-initialize)
 
 (setq fill-column 78)
@@ -55,8 +55,9 @@
 (windmove-default-keybindings)
 (setq windmove-wrap-around t)
 
-(add-to-list 'load-path "$HOME/.emacs.d/lisp")
-(add-to-list 'load-path "$HOME/.emacs.d/org-mode/lisp")
+(add-to-list 'load-path "~/.emacs.d/lisp")
+(add-to-list 'load-path "~/.emacs.d/org-mode/lisp")
+(require 'auto-complete)
 (require 'auto-complete-config)
 ;; (ac-config-default)
 (custom-set-variables
@@ -65,3 +66,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages (quote (##))))
+
+;; auto-complete for python
+(require 'jedi)
+(setq jedi:setup-keys t)
