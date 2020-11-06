@@ -2,7 +2,7 @@
 
 alias resetshell="source $HOME/.zshrc"
 
-alias cpssh="pbcopy | cat $HOME/.ssh/id_rsa.pub"
+alias cpssh="cat $HOME/.ssh/id_rsa.pub | pbcopy"
 
 # Misc and fun.
 alias shrug="echo '¯\_(ツ)_/¯' | pbcopy"
@@ -12,6 +12,12 @@ alias f="fortune"
 # Docker Aliases.
 alias dim="docker image"
 alias dco="docker container"
+
+# Screen
+alias sls="screen -ls"
+
+# List the disks - Only for Linux-*
+alias lsdisk="lsblk -o UUID,NAME,FSTYPE,SIZE,MOUNTPOINT,LABEL,MODEL"
 
 # Git Aliases.
 source $HOME/.aliases-git.bash
