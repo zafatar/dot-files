@@ -69,6 +69,7 @@ ZSH_THEME="agnoster"
 plugins=(
   perl
   git
+  aws
   osx
   docker
   history
