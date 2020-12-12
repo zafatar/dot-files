@@ -15,6 +15,8 @@ alias dco="docker container"
 
 # Screen
 alias sls="screen -ls"
+alias srd="screen -r -d"
+alias scr="screen -S"
 
 # List the disks - Only for Linux-*
 alias lsdisk="lsblk -o UUID,NAME,FSTYPE,SIZE,MOUNTPOINT,LABEL,MODEL"
