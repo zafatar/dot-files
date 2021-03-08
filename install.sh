@@ -64,7 +64,7 @@ ln -s $HOME/.dot-files/scripts/.completion-git.bash $HOME/.completion-git.bash
 ln -s $HOME/.dot-files/scripts/.zzh.bash $HOME/.zzh.bash
 ln -s $HOME/.dot-files/editors/emacs/init.el $HOME/.emacs.d/init.el
 
-printf "INFO: Creating the aliases.\n"
-source $HOME/.aliases.bash
+printf "INFO: Refreshing the shell.\n"
+source $HOME/.zshrc
 
 echo -e "\e[0;32mDone!\e[0m"
