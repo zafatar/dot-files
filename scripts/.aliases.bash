@@ -26,5 +26,9 @@ alias ls='ls -la --color --quoting-style=literal'
 alias ll="ls -l"
 alias em="emacs"
 
+# TODO: Check if they exist
+alias mysql=/usr/local/bin/mysql
+alias mysqladmin=/usr/local/bin/mysqladmin
+
 # Git Aliases.
 source $HOME/.aliases-git.bash

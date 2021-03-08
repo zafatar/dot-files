@@ -68,6 +68,7 @@ ZSH_THEME="agnoster"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
   perl
+  aws
   git
   aws
   osx
@@ -113,10 +114,7 @@ export PATH=/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/local/go/bin/:/op
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
-# All aliases should be defined in one place.
-source ~/.aliases-git.bash
-
-# Only for Mac and iTerm.
+source ~/.aliases.bash
 source ~/.color-tab.bash
 
 export PATH="/usr/local/sbin:$PATH"
@@ -144,3 +142,6 @@ export PATH="/usr/local/opt/libpq/bin:$PATH"
 # tabtab source for packages
 # uninstall by removing these lines
 [[ -f ~/.config/tabtab/__tabtab.zsh ]] && . ~/.config/tabtab/__tabtab.zsh || true
+
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"
