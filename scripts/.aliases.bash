@@ -22,9 +22,16 @@ alias scr="screen -S"
 alias lsdisk="lsblk -o UUID,NAME,FSTYPE,SIZE,MOUNTPOINT,LABEL,MODEL"
 
 # Misc.
-alias ls='ls -la --color --quoting-style=literal'
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # echo -e "\nCreating alisase for linux-based OS...\n"
+    alias ls='ls -la --color --quoting-style=literal'
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # echo -e "\nCreating alisase for linux-based OS...\n"
+    alias ls='ls -laG'
+fi
+
 alias ll="ls -l"
-alias em="emacs"
+alias emacs="emacs -nw"
 
 # TODO: Check if they exist
 alias mysql=/usr/local/bin/mysql
