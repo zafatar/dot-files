@@ -5,6 +5,10 @@
 ;;(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (package-initialize)
 
+;; turn on line and column numbers
+(setq line-number-mode t)
+(setq column-number-mode t)
+
 (setq fill-column 78)
 (setq auto-fill-mode t)
 
