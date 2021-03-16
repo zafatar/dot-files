@@ -62,9 +62,15 @@ ln -s $HOME/.dot-files/scripts/.aliases.bash $HOME/.aliases.bash
 ln -s $HOME/.dot-files/scripts/.aliases-git.bash $HOME/.aliases-git.bash
 ln -s $HOME/.dot-files/scripts/.completion-git.bash $HOME/.completion-git.bash
 ln -s $HOME/.dot-files/scripts/.zzh.bash $HOME/.zzh.bash
-ln -s $HOME/.dot-files/editors/emacs/init.el $HOME/.emacs.d/init.el
+
+# copy the .emacs files - symlink in git not good for emacs.
+cp $HOME/.dot-files/editors/.emacs $HOME/.emacs
+cp $HOME/.dot-files/editors/emacs/init.el $HOME/.emacs.d/init.el
 
 printf "INFO: Refreshing the shell.\n"
+
+# make sure that we are on zsh
+zsh
 source $HOME/.zshrc
 
 echo -e "\e[0;32mDone!\e[0m"
