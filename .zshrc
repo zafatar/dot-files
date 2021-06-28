@@ -67,15 +67,17 @@ ZSH_THEME="agnoster"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-  perl
-  aws
-  git
-  aws
-  osx
-  docker
-  history
-  zsh-syntax-highlighting
-  zsh-autosuggestions
+    perl
+    golang
+    aws
+    git
+    aws
+    osx
+    docker
+    history
+    zsh-syntax-highlighting
+    zsh-autosuggestions
+    zsh-docker-aliases
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -145,3 +147,10 @@ export PATH="/usr/local/opt/libpq/bin:$PATH"
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
+
+# GoLang Paths
+export GOPATH=$HOME/works/Personal/go
+export GOROOT=/usr/local/opt/go/libexec
+export PATH=$PATH:$GOPATH/bin
+export PATH=$PATH:$GOROOT/bin
+export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
