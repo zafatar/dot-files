@@ -24,9 +24,12 @@ fi
 
 # TODO: Check if oh-my-zsh installed.
 if test ! -d ${HOME}/.oh-my-zsh; then
-    echo -e "INFO: Installing `oh-my-zsh`\n"
+    echo -e "INFO: Installing 'oh-my-zsh'\n"
     sh -c "$(wget -O- https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 fi
+
+# TODO: fix the first time instsallation issue.
+# Issue: the installation process quits after installing OMZ.
 
 # Replace the .zshrc with symlink from this folder.
 rm -rf $HOME/.zshrc

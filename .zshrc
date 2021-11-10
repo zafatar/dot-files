@@ -72,7 +72,7 @@ plugins=(
     aws
     git
     aws
-    osx
+    macos
     docker
     history
     zsh-syntax-highlighting
@@ -154,3 +154,8 @@ export GOROOT=/usr/local/opt/go/libexec
 export PATH=$PATH:$GOPATH/bin
 export PATH=$PATH:$GOROOT/bin
 export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /usr/local/bin/terraform terraform
+
+eval "$(rbenv init -)"
