@@ -80,6 +80,10 @@ ln -s $HOME/.dot-files/scripts/.zzh.bash $HOME/.zzh.bash
 cp $HOME/.dot-files/editors/.emacs $HOME/.emacs
 cp $HOME/.dot-files/editors/emacs/init.el $HOME/.emacs.d/init.el
 
+# install required emacs packages
+./editors/emacs/emacs-pckg-install.sh auto-complete
+./editors/emacs/emacs-pckg-install.sh auto-complete-config
+
 printf "INFO: Refreshing the shell.\n"
 
 # make sure that we are on zsh
