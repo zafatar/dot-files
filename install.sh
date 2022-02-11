@@ -17,6 +17,11 @@ else
     exit
 fi
 
+# Step 2. Do a pre-flight check before starting the installation.
+### TODO:
+# - check the internet access.
+# - check the rights for the files/folders.
+
 if test ${DOTFILES_ENV}; then
     echo "Running custom installation for ${DOTFILES_ENV}"
     ./install/${DOTFILES_ENV}-install.sh

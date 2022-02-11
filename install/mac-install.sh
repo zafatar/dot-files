@@ -12,6 +12,10 @@ fi
 if test ! $(which zsh); then
     echo -e "INFO: Installing `zsh`\n"
     brew install zsh
+
+    sudo -s 'echo /usr/local/bin/zsh >> /etc/shells'
+
+    chsh -s /usr/local/bin/zsh
 fi
 
 # TODO: Check if they are already there and installed.

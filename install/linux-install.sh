@@ -6,6 +6,12 @@ sudo apt-get update
 if test ! $(which zsh); then
     echo -e "INFO: Installing `zsh`\n"
     sudo apt-get install zsh
+
+    # Add it to the available shell list.
+    sudo -s 'echo /usr/local/bin/zsh >> /etc/shells'
+
+    # Change the Shell
+    chsh -s /usr/local/bin/zsh
 fi
 
 # Misc. Installations.
