@@ -1,24 +1,35 @@
 #!/bin/sh
+set -e
 
 # install Homebrew if it's not installed
+echo "\n============================================="
+printf "Checking if Homebrew is installed...\n"
+
 if test ! $(which brew); then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 else
-    echo "Homebrew found. Version: \n\n$(brew --version)"
+    printf "Homebrew found. Version: \n$(brew --version)\n"
 fi
 
-# TODO: Add casks.
+echo "\n============================================="
+printf "Checking if zsh is installed...\n"
 
 if test ! $(which zsh); then
-    echo -e "INFO: Installing `zsh`\n"
+    printf "INFO: Installing `zsh`\n"
     brew install zsh
 
     sudo -s 'echo /usr/local/bin/zsh >> /etc/shells'
 
     chsh -s /usr/local/bin/zsh
+else
+    printf "ZSH found. Version: \n$(zsh --version)\n"
 fi
 
-# TODO: Check if they are already there and installed.
-# Install emacs-plus
-brew tap d12frosted/emacs-plus
-brew install emacs-plus
+echo "\n============================================="
+printf "Installing applications...\n\n"
+
+brew install git htop fastfetch rsync telnet nmap tree
+
+# ...
+
+echo "\n============================================="
