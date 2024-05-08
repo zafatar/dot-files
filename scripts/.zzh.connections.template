@@ -1,0 +1,13 @@
+# This is the configuration file for the zzh calls.
+#
+# the format rules are :
+#   - each line consists of 2 strings separated by spaces.
+#   - first string is the alias of the connection
+#   - second string presents the connection string for SSH
+#   - lines starting with `#` are directly ignored.
+
+# Alias      SSH connection information
+pi          ssh://pi@my-pi-server.com:2222
+pi_local    pi@192.168.2.108
+
+# ...

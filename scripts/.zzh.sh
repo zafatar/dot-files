@@ -10,7 +10,7 @@ else
     printf "This shell %s is not supported.\n" $SHELL
 fi
 
-input_file=$HOME'/.zzh.connections'
+input_file=$HOME'/.dot-files/scripts/.zzh.connections'
 max_string_size=0
 
 read_config_file() {
@@ -97,4 +97,4 @@ zzh() {
 
 }
 
-zzh-load()
+zzh-load
