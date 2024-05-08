@@ -116,12 +116,10 @@ export PATH=/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/local/go/bin/:/op
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
-source ~/.aliases.bash
-source ~/.color-tab.bash
+source $HOME/.aliases.sh
 
-export PATH="/usr/local/sbin:$PATH"
-
-export PATH="${HOME}/.gem/ruby/2.6.0/bin:$PATH"
+source $HOME/.color-tab.iterm.sh
+source $HOME/.zzh.sh
 
 # agnoster case:
 DEFAULT_USER="$(whoami)"
@@ -137,25 +135,28 @@ prompt_context() {
     prompt_segment red white "$(date '+%Y-%m-%d %H:%M:%S') > $USER"
 }
 
-fortune
-
-export PATH="/usr/local/opt/libpq/bin:$PATH"
+prompt_dir() {
+    prompt_segment blue gray '%~'
+}
 
 # tabtab source for packages
 # uninstall by removing these lines
 [[ -f ~/.config/tabtab/__tabtab.zsh ]] && . ~/.config/tabtab/__tabtab.zsh || true
 
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
-
-# GoLang Paths
-export GOPATH=$HOME/works/Personal/go
-export GOROOT=/usr/local/opt/go/libexec
-export PATH=$PATH:$GOPATH/bin
-export PATH=$PATH:$GOROOT/bin
-export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
-
+autoload -U +X compinit && compinit
 autoload -U +X bashcompinit && bashcompinit
+
 complete -o nospace -C /usr/local/bin/terraform terraform
 
-eval "$(rbenv init -)"
+# PATH updates
+export PATH="/usr/local/sbin:$PATH"
+
+export PATH="/usr/local/opt/libpq/bin:$PATH"
+
+export PATH="${HOME}/.gem/ruby/2.6.0/bin:$PATH"
+
+# GPG requires TTY
+export GPG_TTY=$(tty)
+
+# Set the default quoting style to literal
+export QUOTING_STYLE=literal
