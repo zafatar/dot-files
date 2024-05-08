@@ -1,19 +1,19 @@
 #!/bin/bash
 set -e
 
-echo "Installing the dotfiles"
+printf "Installing the .dot-files"
 
 # Step 1. Check the environment.
 DOTFILES_ENV=''
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo -e "\nRunning on a linux-based OS...\n"
+    printf "\nRunning on a linux-based OS 🐧 ...\n"
     DOTFILES_ENV='linux'
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "\nRunning on a Mac OSX...\n"
+    printf "\nRunning on a Mac OSX  ...\n"
     DOTFILES_ENV='mac'
 else
-    echo "ERROR: Tested only on Linux (Ubuntu) and Mac OSX\n"
-    echo "Exiting...\n"
+    printf "ERROR: Tested only on Linux (Ubuntu) and Mac OSX\n"
+    printf "Exiting...\n"
     exit
 fi
 
@@ -23,7 +23,7 @@ fi
 # - check the rights for the files/folders.
 
 if test ${DOTFILES_ENV}; then
-    echo "Running custom installation for ${DOTFILES_ENV}"
+    printf "\nRunning custom installation for ${DOTFILES_ENV}...\n"
     ./install/${DOTFILES_ENV}-install.sh
 fi
 
@@ -51,6 +51,12 @@ if test ! -d ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting;
     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 fi
 
+# install zsh-completions
+if test ! -d ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-completions; then
+    echo -e "INFO: Installing `zsh-completions`\n"
+    git clone https://github.com/zsh-users/zsh-completions ${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions
+fi
+
 if test ! -d ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-docker-aliases; then
     echo -e "INFO: Installing `zsh-docker-aliases`\n"
     git clone https://github.com/akarzim/zsh-docker-aliases.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-docker-aliases
@@ -61,33 +67,33 @@ if [[ ! "$SHELL" =~ "zsh" ]]; then
     chsh -s $(which zsh)
 fi
 
-# Clean the old symlinks / files.
-printf "INFO: Removing the symlinks.\n"
-rm -rf $HOME/.aliases.bash
-rm -rf $HOME/.aliases-git.bash
-rm -rf $HOME/.completion-git.bash
-rm -rf $HOME/.zzh.bash
-rm -rf $HOME/.emacs
-rm -rf $HOME/.emacs.d/init.el
+function refresh-symlinks() {
+    # Clean the old symlinks / files.
+    printf "INFO: Removing the symlinks.\n"
 
-printf "INFO: Creating the symlinks.\n"
-ln -s $HOME/.dot-files/scripts/.aliases.bash $HOME/.aliases.bash
-ln -s $HOME/.dot-files/scripts/.aliases-git.bash $HOME/.aliases-git.bash
-ln -s $HOME/.dot-files/scripts/.completion-git.bash $HOME/.completion-git.bash
-ln -s $HOME/.dot-files/scripts/.zzh.bash $HOME/.zzh.bash
+    rm -rf $HOME/.aliases.sh
+    rm -rf $HOME/.aliases-git.sh
+    rm -rf $HOME/.color-tab.iterm.sh
+    rm -rf $HOME/.completion-git.sh
+    rm -rf $HOME/.zzh.sh
 
-# copy the .emacs files - symlink in git not good for emacs.
-cp $HOME/.dot-files/editors/.emacs $HOME/.emacs
-cp $HOME/.dot-files/editors/emacs/init.el $HOME/.emacs.d/init.el
+    rm -rf $HOME/.config/emacs/init.el
+    rm -rf $HOME/.config/emacs/early-init.el
+    rm -rf $HOME/.config/emacs/config.org
 
-# install required emacs packages
-./editors/emacs/emacs-pckg-install.sh auto-complete
-./editors/emacs/emacs-pckg-install.sh auto-complete-config
+    printf "INFO: Creating the symlinks.\n"
+    ln -s $HOME/.dot-files/scripts/.aliases.sh $HOME/.aliases.sh
+    ln -s $HOME/.dot-files/scripts/.aliases-git.sh $HOME/.aliases-git.sh
+    ln -s $HOME/.dot-files/scripts/.color-tab.iterm.sh $HOME/.color-tab.iterm.sh
+    ln -s $HOME/.dot-files/scripts/.completion-git.sh $HOME/.completion-git.sh
+    ln -s $HOME/.dot-files/scripts/.zzh.sh $HOME/.zzh.sh
 
-printf "INFO: Refreshing the shell.\n"
+    # Emacs
+    ln -s $HOME/.dot-files/.config/emacs/init.el $HOME/.config/emacs/init.el
+    ln -s $HOME/.dot-files/.config/emacs/early-init.el $HOME/.config/emacs/early-init.el
+    ln -s $HOME/.dot-files/.config/emacs/config.org $HOME/.config/emacs/config.org
+}
 
-# make sure that we are on zsh
-zsh
-source $HOME/.zshrc
+refresh-symlinks
 
-echo -e "\e[0;32mDone!\e[0m"
+printf "\n ✅ \e[0;32mDone!\e[0m \e[0;32mPlease restart the terminal.\e[0m\n\n"
