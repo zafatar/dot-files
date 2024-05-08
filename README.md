@@ -1,6 +1,6 @@
-# dot-files for Mac
+# .dot-files for Mac OSX and Linux
 
-This repo is used by me in order to set up Mac ZSH by installing some handy tools and scripts along with their plugins and aliases.
+This repo is used by me in order to set up ZSH by installing some handy tools, applications and scripts along with their plugins and aliases.
 
 ## Content
 
@@ -24,6 +24,6 @@ The main components in this repo are the hidden shell files and one config file 
 
 ## Future works
 
-- (WIP) Add an installation script which makes the installation seamless.
+- Stable install script for re-installation and update. 
 
-- (WIP) Checks for the shell types (BASH or zsh)
+- Test scripts on different OSs (if possible).
