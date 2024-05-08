@@ -6,3 +6,6 @@
 
 # emacs backup files
 *~
+
+# ZZH Connection config file.
+*.connections
