@@ -51,5 +51,10 @@ alias personal="cd ~/Works/personal"
 alias python="python3"
 alias update="omz update && brew outdated && brew upgrade"
 
+function wifipwd {
+    wifiname=$1
+    security find-generic-password -ga $wifiname | grep -e 'password:'
+}
+
 # Git Aliases.
 source $HOME/.aliases-git.sh
