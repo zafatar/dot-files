@@ -160,3 +160,40 @@ export GPG_TTY=$(tty)
 
 # Set the default quoting style to literal
 export QUOTING_STYLE=literal
+
+# Created by `pipx`
+export PATH="$PATH:$HOME/.local/bin"
+
+# FZF - File Finder
+eval "$(fzf --zsh)"
+
+# TODO: Move this it a separate installation process along with the conda on mac
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/opt/homebrew/Caskroom/miniconda/base/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/opt/homebrew/Caskroom/miniconda/base/etc/profile.d/conda.sh" ]; then
+        . "/opt/homebrew/Caskroom/miniconda/base/etc/profile.d/conda.sh"
+    else
+        export PATH="/opt/homebrew/Caskroom/miniconda/base/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
+conda deactivate        # deactivate any active conda environment - neutralize the environment
+
+# In order to reattach the screen with the SSH ForwardAgent
+# We need this method on the servers/remote machines:
+if [ -z "${STY}" -a -t 0 ]; then
+    reattach () {
+        if [ -n "${SSH_AUTH_SOCK}" ]; then
+            echo -e "linking...\n"
+            ln -snf "${SSH_AUTH_SOCK}" "${HOME}/.ssh/agent-screen"
+            export SSH_AUTH_SOCK=${HOME}/.ssh/agent-screen
+        fi
+        exec screen -r -d ${1:+"$@"}
+    }
+fi
