@@ -7,18 +7,28 @@ printf "Installing the .dot-files"
 DOTFILES_ENV=''
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     printf "\nRunning on a linux-based OS 🐧 ...\n"
-    DOTFILES_ENV='linux'
+
+    if [[ -f /etc/debian_version ]]; then
+        DOTFILES_ENV='linux-deb'
+    elif [[ -f /etc/arch-release ]]; then 
+        DOTFILES_ENV='linux-arch'
+    else
+        printf "ERROR: Tested only on Linux (Ubuntu and Arch-based)\n"
+        printf "Exiting...\n"
+        exit
+    fi
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     printf "\nRunning on a Mac OSX  ...\n"
     DOTFILES_ENV='mac'
 else
-    printf "ERROR: Tested only on Linux (Ubuntu) and Mac OSX\n"
+    printf "ERROR: Tested only on Linux (Ubuntu/Debian and Arch-based) and Mac OSX\n"
     printf "Exiting...\n"
     exit
 fi
 
 # Step 2. Do a pre-flight check before starting the installation.
 ### TODO:
+
 # - check the internet access.
 # - check the rights for the files/folders.
 
@@ -40,7 +50,7 @@ fi
 rm -rf $HOME/.zshrc
 ln -s $HOME/.dot-files/.zshrc $HOME/.zshrc
 
-# Get these 2 favourite plugin for oh-my-zsh.
+# Get these 2 favourite plugin   for oh-my-zsh.
 if test ! -d ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions; then
     echo -e "INFO: Installing `zsh-autosuggestions`\n"
     git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
@@ -89,6 +99,11 @@ function refresh-symlinks() {
     ln -s $HOME/.dot-files/scripts/.zzh.sh $HOME/.zzh.sh
 
     # Emacs
+    # Create emacs folder if not exists:
+    if [ ! -d $HOME/.config/emacs ]; then
+        mkdir -p $HOME/.config/emacs
+    fi
+
     ln -s $HOME/.dot-files/.config/emacs/init.el $HOME/.config/emacs/init.el
     ln -s $HOME/.dot-files/.config/emacs/early-init.el $HOME/.config/emacs/early-init.el
     ln -s $HOME/.dot-files/.config/emacs/config.org $HOME/.config/emacs/config.org
