@@ -160,3 +160,5 @@ export GPG_TTY=$(tty)
 
 # Set the default quoting style to literal
 export QUOTING_STYLE=literal
+
+export GPG_TTY=$(tty)
