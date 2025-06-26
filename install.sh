@@ -61,7 +61,15 @@ check_root() {
 # Detect OS
 detect_os() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        echo "linux"
+        # Check for Debian-based systems
+        if command -v apt-get >/dev/null 2>&1; then
+            echo "linux-deb"
+        # Check for Arch-based systems
+        elif command -v pacman >/dev/null 2>&1; then
+            echo "linux-arch"
+        else
+            error_exit "Unsupported Linux distribution. Only Debian and Arch-based systems are supported."
+        fi
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         echo "mac"
     else
