@@ -30,6 +30,9 @@ printf "Installing applications...\n\n"
 
 brew install git htop fastfetch rsync telnet nmap tree
 
+# Add more explanations here.
+brew install fzf bat exa fd
+
 # ...
 
 echo "\n============================================="

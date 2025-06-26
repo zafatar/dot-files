@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
@@ -10,6 +17,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 # ZSH_THEME="robbyrussell"
 ZSH_THEME="agnoster"
+# ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # BULLETTRAIN_TIME_BG="blue"
 # BULLETTRAIN_TIME_FG="white"
@@ -68,8 +76,6 @@ ZSH_THEME="agnoster"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
     perl
-    golang
-    aws
     git
     aws
     macos
@@ -118,9 +124,6 @@ export LC_ALL=en_US.UTF-8
 
 source $HOME/.aliases.sh
 
-source $HOME/.color-tab.iterm.sh
-source $HOME/.zzh.sh
-
 # agnoster case:
 DEFAULT_USER="$(whoami)"
 
@@ -139,10 +142,6 @@ prompt_dir() {
     prompt_segment blue gray '%~'
 }
 
-# tabtab source for packages
-# uninstall by removing these lines
-[[ -f ~/.config/tabtab/__tabtab.zsh ]] && . ~/.config/tabtab/__tabtab.zsh || true
-
 autoload -U +X compinit && compinit
 autoload -U +X bashcompinit && bashcompinit
 
@@ -160,5 +159,33 @@ export GPG_TTY=$(tty)
 
 # Set the default quoting style to literal
 export QUOTING_STYLE=literal
+
+# Created by `pipx`
+export PATH="$PATH:$HOME/.local/bin"
+
+# FZF - File Finder
+eval "$(fzf --zsh)"
+
+# In order to reattach the screen with the SSH ForwardAgent
+# We need this method on the servers/remote machines:
+if [ -z "${STY}" -a -t 0 ]; then
+    reattach () {
+        if [ -n "${SSH_AUTH_SOCK}" ]; then
+            echo -e "linking...\n"
+            ln -snf "${SSH_AUTH_SOCK}" "${HOME}/.ssh/agent-screen"
+            export SSH_AUTH_SOCK=${HOME}/.ssh/agent-screen
+        fi
+        exec screen -r -d ${1:+"$@"}
+    }
+fi
+
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+source /opt/homebrew/opt/chruby/share/chruby/chruby.sh
+source /opt/homebrew/opt/chruby/share/chruby/auto.sh
+chruby ruby-3.3.4
 
 export GPG_TTY=$(tty)
