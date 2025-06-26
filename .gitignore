@@ -7,5 +7,5 @@
 # emacs backup files
 *~
 
-# ZZH Connection config file.
-*.connections
+# macOS specific files.
+.DS_Store
