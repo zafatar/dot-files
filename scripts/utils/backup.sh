@@ -69,6 +69,20 @@ get_dotfiles_list() {
         if [[ -f "$HOME/.config/git/config" ]]; then
             files+=("$HOME/.config/git/config")
         fi
+        
+        # Emacs configuration files
+        if [[ -f "$HOME/.config/emacs/init.el" ]]; then
+            files+=("$HOME/.config/emacs/init.el")
+        fi
+        if [[ -f "$HOME/.config/emacs/early-init.el" ]]; then
+            files+=("$HOME/.config/emacs/early-init.el")
+        fi
+        if [[ -f "$HOME/.config/emacs/config.org" ]]; then
+            files+=("$HOME/.config/emacs/config.org")
+        fi
+        if [[ -f "$HOME/.config/emacs/themes/zenburn-theme.el" ]]; then
+            files+=("$HOME/.config/emacs/themes/zenburn-theme.el")
+        fi
     fi
     
     # Return existing files only

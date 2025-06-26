@@ -76,6 +76,11 @@ create_backup() {
         "$HOME/.aliases-git.sh"
         "$HOME/.color-tab.iterm.sh"
         "$HOME/.completion-git.sh"
+        # Emacs configuration
+        "$HOME/.config/emacs/init.el"
+        "$HOME/.config/emacs/early-init.el"
+        "$HOME/.config/emacs/config.org"
+        "$HOME/.config/emacs/themes/zenburn-theme.el"
     )
     
     log "INFO" "Creating backup directory: $BACKUP_DIR"
@@ -175,6 +180,31 @@ create_symlinks() {
         symlinks+=(".completion-git.sh:$DOTFILES_DIR/scripts/.completion-git.sh")
     fi
     
+    # Emacs configuration (only if it exists)
+    if [[ -d "$DOTFILES_DIR/.config/emacs" ]]; then
+        log "INFO" "Setting up Emacs configuration"
+        
+        # Create .config/emacs directory if it doesn't exist
+        mkdir -p "$HOME/.config/emacs/themes"
+        
+        # Emacs symlinks
+        if [[ -f "$DOTFILES_DIR/.config/emacs/init.el" ]]; then
+            symlinks+=(".config/emacs/init.el:$DOTFILES_DIR/.config/emacs/init.el")
+        fi
+        
+        if [[ -f "$DOTFILES_DIR/.config/emacs/early-init.el" ]]; then
+            symlinks+=(".config/emacs/early-init.el:$DOTFILES_DIR/.config/emacs/early-init.el")
+        fi
+        
+        if [[ -f "$DOTFILES_DIR/.config/emacs/config.org" ]]; then
+            symlinks+=(".config/emacs/config.org:$DOTFILES_DIR/.config/emacs/config.org")
+        fi
+        
+        if [[ -f "$DOTFILES_DIR/.config/emacs/themes/zenburn-theme.el" ]]; then
+            symlinks+=(".config/emacs/themes/zenburn-theme.el:$DOTFILES_DIR/.config/emacs/themes/zenburn-theme.el")
+        fi
+    fi
+    
     for symlink_info in "${symlinks[@]}"; do
         local target="${symlink_info%%:*}"
         local source="${symlink_info##*:}"
@@ -241,6 +271,19 @@ verify_installation() {
         "$HOME/.aliases.sh"
         "$HOME/.aliases-git.sh"
     )
+    
+    # Add Emacs symlinks if they should exist
+    if [[ -d "$DOTFILES_DIR/.config/emacs" ]]; then
+        if [[ -f "$DOTFILES_DIR/.config/emacs/init.el" ]]; then
+            expected_symlinks+=("$HOME/.config/emacs/init.el")
+        fi
+        if [[ -f "$DOTFILES_DIR/.config/emacs/early-init.el" ]]; then
+            expected_symlinks+=("$HOME/.config/emacs/early-init.el")
+        fi
+        if [[ -f "$DOTFILES_DIR/.config/emacs/config.org" ]]; then
+            expected_symlinks+=("$HOME/.config/emacs/config.org")
+        fi
+    fi
     
     for symlink in "${expected_symlinks[@]}"; do
         if [[ ! -L "$symlink" ]]; then

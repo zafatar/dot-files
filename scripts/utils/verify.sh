@@ -73,6 +73,23 @@ check_symlinks() {
         expected_symlinks+=("$HOME/.completion-git.sh:$DOTFILES_DIR/scripts/.completion-git.sh")
     fi
     
+    # Emacs configuration symlinks (only check if source exists)
+    if [[ -f "$DOTFILES_DIR/.config/emacs/init.el" ]]; then
+        expected_symlinks+=("$HOME/.config/emacs/init.el:$DOTFILES_DIR/.config/emacs/init.el")
+    fi
+    
+    if [[ -f "$DOTFILES_DIR/.config/emacs/early-init.el" ]]; then
+        expected_symlinks+=("$HOME/.config/emacs/early-init.el:$DOTFILES_DIR/.config/emacs/early-init.el")
+    fi
+    
+    if [[ -f "$DOTFILES_DIR/.config/emacs/config.org" ]]; then
+        expected_symlinks+=("$HOME/.config/emacs/config.org:$DOTFILES_DIR/.config/emacs/config.org")
+    fi
+    
+    if [[ -f "$DOTFILES_DIR/.config/emacs/themes/zenburn-theme.el" ]]; then
+        expected_symlinks+=("$HOME/.config/emacs/themes/zenburn-theme.el:$DOTFILES_DIR/.config/emacs/themes/zenburn-theme.el")
+    fi
+    
     for symlink_info in "${expected_symlinks[@]}"; do
         local target="${symlink_info%%:*}"
         local expected_source="${symlink_info##*:}"

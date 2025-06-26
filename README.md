@@ -21,6 +21,11 @@ A robust dotfiles configuration with automated installation, backup, and verific
 - **iTerm color tab support** (macOS)
 - **Auto-completion** enhancements
 
+### Editor Configuration
+- **Emacs** configuration with org-mode setup
+- **Zenburn theme** for comfortable coding
+- **Custom init.el** with productivity settings
+
 ### ZSH Plugins
 - `zsh-autosuggestions` - Fish-like autosuggestions
 - `zsh-syntax-highlighting` - Syntax highlighting
@@ -135,6 +140,13 @@ That's it! The installer will:
 │   └── utils/
 │       ├── backup.sh        # Backup utility
 │       └── verify.sh        # Verification utility
+├── .config/
+│   └── emacs/              # Emacs configuration
+│       ├── init.el         # Main Emacs config
+│       ├── early-init.el   # Early initialization
+│       ├── config.org      # Org-mode configuration
+│       └── themes/
+│           └── zenburn-theme.el # Custom theme
 └── README.md               # This file
 ```
 

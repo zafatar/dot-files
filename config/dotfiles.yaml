@@ -15,6 +15,12 @@ symlinks:
   # Optional symlinks (only created if source exists)
   ~/.color-tab.iterm.sh: scripts/.color-tab.iterm.sh
   ~/.completion-git.sh: scripts/.completion-git.sh
+  
+  # Emacs configuration
+  ~/.config/emacs/init.el: .config/emacs/init.el
+  ~/.config/emacs/early-init.el: .config/emacs/early-init.el
+  ~/.config/emacs/config.org: .config/emacs/config.org
+  ~/.config/emacs/themes/zenburn-theme.el: .config/emacs/themes/zenburn-theme.el
 
 # ZSH plugins to install
 zsh_plugins:
@@ -92,6 +98,11 @@ backup:
     - ~/.gitconfig
     - ~/.vimrc
     - ~/.tmux.conf
+    # Emacs configuration
+    - ~/.config/emacs/init.el
+    - ~/.config/emacs/early-init.el
+    - ~/.config/emacs/config.org
+    - ~/.config/emacs/themes/zenburn-theme.el
   
   # Backup directory pattern (supports date formatting)
   directory_pattern: "~/.dotfiles-backup-%Y%m%d-%H%M%S"
@@ -120,6 +131,9 @@ verification:
     - ~/.zshrc
     - ~/.aliases.sh
     - ~/.aliases-git.sh
+    - ~/.config/emacs/init.el
+    - ~/.config/emacs/early-init.el
+    - ~/.config/emacs/config.org
   
   # Check these ZSH plugins are installed
   required_plugins:
