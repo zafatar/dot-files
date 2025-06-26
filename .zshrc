@@ -184,8 +184,10 @@ export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-source /opt/homebrew/opt/chruby/share/chruby/chruby.sh
-source /opt/homebrew/opt/chruby/share/chruby/auto.sh
-chruby ruby-3.3.4
+if [[ -f "/opt/homebrew/opt/chruby/share/chruby/chruby.sh" && -f "/opt/homebrew/opt/chruby/share/chruby/auto.sh" && -x "$(command -v chruby)" ]]; then
+    source /opt/homebrew/opt/chruby/share/chruby/chruby.sh
+    source /opt/homebrew/opt/chruby/share/chruby/auto.sh
+    chruby ruby-3.3.4
+fi
 
 export GPG_TTY=$(tty)
