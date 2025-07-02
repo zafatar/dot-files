@@ -124,6 +124,8 @@ export LC_ALL=en_US.UTF-8
 
 source $HOME/.aliases.sh
 
+source $HOME/.aws.sh
+
 # agnoster case:
 DEFAULT_USER="$(whoami)"
 
@@ -188,6 +190,11 @@ if [[ -f "/opt/homebrew/opt/chruby/share/chruby/chruby.sh" && -f "/opt/homebrew/
     source /opt/homebrew/opt/chruby/share/chruby/chruby.sh
     source /opt/homebrew/opt/chruby/share/chruby/auto.sh
     chruby ruby-3.3.4
+fi
+
+
+if [[ -d "$HOME/Works/autodesk/etc/scripts/" ]]; then
+    PATH="$HOME/Works/autodesk/etc/scripts/:$PATH"
 fi
 
 export GPG_TTY=$(tty)
