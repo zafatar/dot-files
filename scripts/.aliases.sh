@@ -38,12 +38,6 @@ alias ll="ls -la"
 
 alias emacs="emacs -nw"
 
-# AWS
-# alias aws-login-dev="export AWS_PROFILE=blankai-dev && source aws-dev-login.sh"
-# alias aws-running-instances="aws ec2 describe-instances | jq -r '.Reservations[].Instances[] | select(.State.Code == 16) | [.InstanceId, .InstanceType, .State.Name, .PrivateIpAddress, (.Tags[]? | select(.Key == \"Name\") | .Value)] | @tsv' | column -t"
-# alias aws-running-instances="aws ec2 describe-instances | jq -r '.Reservations[].Instances[] | select(.State.Code == 16) | [.InstanceId, .InstanceType, .State.Name, .PrivateIpAddress, (.Tags[]? | select(.Key == \"Name\") | .Value)] | @tsv' | column -t | awk '{printf \"\033[1;36m%s\033[0m  \033[0;32m%s\033[0m  \033[1;32m%s\033[0m  \033[0;34m%s\033[0m  \033[0;35m%s\033[0m\n\", \$1, \$2, \$3, \$4, \$5}'"
-alias aws-all-instances="aws ec2 describe-instances | jq '.Reservations[].Instances[] | [.InstanceId, .InstanceType, .State.Name, .PrivateIpAddress, (.Tags[]|select(.Key==\"Name\")|.Value)] | @tsv' | column -t"
-
 alias ff="fastfetch"
 alias ad="cd ~/Works/autodesk"
 alias personal="cd ~/Works/personal"
