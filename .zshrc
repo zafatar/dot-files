@@ -197,4 +197,10 @@ if [[ -d "$HOME/Works/autodesk/etc/scripts/" ]]; then
     PATH="$HOME/Works/autodesk/etc/scripts/:$PATH"
 fi
 
+# GPG Forwarding Activation
 export GPG_TTY=$(tty)
+
+# rbenv
+if command -v rbenv >/dev/null 2>&1; then
+    eval "$(rbenv init - zsh)"
+fi
