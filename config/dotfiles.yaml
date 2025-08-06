@@ -70,6 +70,7 @@ packages:
       - bat
       - exa
       - fd
+      - duf
     
     homebrew_casks: []
   

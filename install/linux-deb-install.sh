@@ -18,6 +18,7 @@ fi
 sudo apt-get -y install emacs
 sudo apt-get -y install htop
 sudo apt-get -y install git
+sudo apt-get -y install duf
 
 # Docker
 sudo apt-get -y install docker.io

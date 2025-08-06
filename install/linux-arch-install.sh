@@ -18,6 +18,7 @@ fi
 yay -S emacs
 yay -S htop
 yay -S git
+yay -S duf
 
 # Docker
 yay -S docker
