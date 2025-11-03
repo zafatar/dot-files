@@ -61,6 +61,7 @@ aws-all-instances() {
     local stopped=0
     local pending=0
     local stopping=0
+    local shutting_down=0
     local terminated=0
     local other=0
     local total=0
@@ -73,18 +74,20 @@ aws-all-instances() {
             .InstanceType, 
             .State.Name, 
             (.PrivateIpAddress // "N/A"), 
-            ((.Tags[]? | select(.Key == "Name") | .Value) // "")
+            ((.Tags[]? | select(.Key == "Name") | .Value) // ""),
+            (.ImageId // "N/A")
         ] | 
         @tsv
     ')
     
     # Count instances by state
-    while IFS=$'\t' read -r instance_id type state private_ip name; do
+    while IFS=$'\t' read -r instance_id type state private_ip name ami_id; do
         case "$state" in
             "running")   ((running++)) ;;
             "stopped")   ((stopped++)) ;;
             "pending")   ((pending++)) ;;
             "stopping")  ((stopping++)) ;;
+            "shutting-down") ((shutting_down++)) ;;
             "terminated") ((terminated++)) ;;
             *)           ((other++)) ;;
         esac
@@ -92,53 +95,56 @@ aws-all-instances() {
     done <<< "$instance_data"
     
     (
-        printf "\033[1;37m%-19s %-15s %-12s %-15s %s\033[0m\n" "INSTANCE_ID" "TYPE" "STATE" "PRIVATE_IP" "NAME"
+        printf "\033[1;37m%-19s %-15s %-14s %-15s %-21s %s\033[0m\n" "INSTANCE_ID" "TYPE" "STATE" "PRIVATE_IP" "AMI_ID" "NAME"
         
         # Sort and display the data
         if [ "$sort_by_ip" = true ]; then
-            echo "$instance_data" | sort -t$'\t' -k4 -V | while IFS=$'\t' read -r instance_id type state private_ip name; do
+            echo "$instance_data" | sort -t$'\t' -k4 -V | while IFS=$'\t' read -r instance_id type state private_ip name ami_id; do
                 # Color states differently
                 case "$state" in
                     "running")   state_color=$'\033[1;32m' ;;  # Bright Green
                     "stopped")   state_color=$'\033[1;31m' ;;  # Bright Red
                     "pending")   state_color=$'\033[1;33m' ;;  # Bright Yellow
                     "stopping")  state_color=$'\033[0;33m' ;;  # Yellow
+                    "shutting-down") state_color=$'\033[0;91m' ;; # Bright Red (different shade)
                     "terminated") state_color=$'\033[0;90m' ;; # Dark Gray
                     *)           state_color=$'\033[0;37m' ;;  # Light Gray
                 esac
                 
-                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-12s\033[0m \033[0;34m%-15s\033[0m \033[0;35m%s\033[0m\n" \
-                    "$instance_id" "$type" "$state" "$private_ip" "$name"
+                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-14s\033[0m \033[0;34m%-15s\033[0m \033[1;35m%-21s\033[0m \033[0;35m%s\033[0m\n" \
+                    "$instance_id" "$type" "$state" "$private_ip" "$ami_id" "$name"
             done
         elif [ "$sort_by_name" = true ]; then
-            echo "$instance_data" | sort -t$'\t' -k5 | while IFS=$'\t' read -r instance_id type state private_ip name; do
+            echo "$instance_data" | sort -t$'\t' -k5 | while IFS=$'\t' read -r instance_id type state private_ip name ami_id; do
                 # Color states differently
                 case "$state" in
                     "running")   state_color=$'\033[1;32m' ;;  # Bright Green
                     "stopped")   state_color=$'\033[1;31m' ;;  # Bright Red
                     "pending")   state_color=$'\033[1;33m' ;;  # Bright Yellow
                     "stopping")  state_color=$'\033[0;33m' ;;  # Yellow
+                    "shutting-down") state_color=$'\033[0;91m' ;; # Bright Red (different shade)
                     "terminated") state_color=$'\033[0;90m' ;; # Dark Gray
                     *)           state_color=$'\033[0;37m' ;;  # Light Gray
                 esac
                 
-                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-12s\033[0m \033[0;34m%-15s\033[0m \033[0;35m%s\033[0m\n" \
-                    "$instance_id" "$type" "$state" "$private_ip" "$name"
+                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-14s\033[0m \033[0;34m%-15s\033[0m \033[1;35m%-21s\033[0m \033[0;35m%s\033[0m\n" \
+                    "$instance_id" "$type" "$state" "$private_ip" "$ami_id" "$name"
             done
         else
-            echo "$instance_data" | while IFS=$'\t' read -r instance_id type state private_ip name; do
+            echo "$instance_data" | while IFS=$'\t' read -r instance_id type state private_ip name ami_id; do
                 # Color states differently
                 case "$state" in
                     "running")   state_color=$'\033[1;32m' ;;  # Bright Green
                     "stopped")   state_color=$'\033[1;31m' ;;  # Bright Red
                     "pending")   state_color=$'\033[1;33m' ;;  # Bright Yellow
                     "stopping")  state_color=$'\033[0;33m' ;;  # Yellow
+                    "shutting-down") state_color=$'\033[0;91m' ;; # Bright Red (different shade)
                     "terminated") state_color=$'\033[0;90m' ;; # Dark Gray
                     *)           state_color=$'\033[0;37m' ;;  # Light Gray
                 esac
                 
-                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-12s\033[0m \033[0;34m%-15s\033[0m \033[0;35m%s\033[0m\n" \
-                    "$instance_id" "$type" "$state" "$private_ip" "$name"
+                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-14s\033[0m \033[0;34m%-15s\033[0m \033[1;35m%-21s\033[0m \033[0;35m%s\033[0m\n" \
+                    "$instance_id" "$type" "$state" "$private_ip" "$ami_id" "$name"
             done
         fi
     )
@@ -150,6 +156,7 @@ aws-all-instances() {
     [ $stopped -gt 0 ] && printf "\033[1;31m%d stopped\033[0m " "$stopped"
     [ $pending -gt 0 ] && printf "\033[1;33m%d pending\033[0m " "$pending"
     [ $stopping -gt 0 ] && printf "\033[0;33m%d stopping\033[0m " "$stopping"
+    [ $shutting_down -gt 0 ] && printf "\033[0;91m%d shutting-down\033[0m " "$shutting_down"
     [ $terminated -gt 0 ] && printf "\033[0;90m%d terminated\033[0m " "$terminated"
     [ $other -gt 0 ] && printf "\033[0;37m%d other\033[0m " "$other"
     printf "\033[1;37m| Total: %d instances\033[0m\n" "$total"
