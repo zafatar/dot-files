@@ -19,8 +19,8 @@ export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="agnoster"
 # ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# BULLETTRAIN_TIME_BG="blue"
-# BULLETTRAIN_TIME_FG="white"
+BULLETTRAIN_TIME_BG="blue"
+BULLETTRAIN_TIME_FG="white"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -39,7 +39,7 @@ ZSH_THEME="agnoster"
 # DISABLE_AUTO_UPDATE="true"
 
 # Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
+export UPDATE_ZSH_DAYS=7
 
 # Uncomment the following line to disable colors in ls.
 # DISABLE_LS_COLORS="true"
@@ -75,7 +75,6 @@ ZSH_THEME="agnoster"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-    perl
     git
     aws
     macos
@@ -126,23 +125,28 @@ source $HOME/.aliases.sh
 
 source $HOME/.aws.sh
 
+source $HOME/.functions.sh
+
 # agnoster case:
 DEFAULT_USER="$(whoami)"
 
 # AGNOSTER_PROMPT_SEGMENTS=(
-#    prompt_status
-#    prompt_context
-#    prompt_virtualenv
-#    prompt_git
-#)
+#     prompt_status
+#     prompt_context
+#     prompt_virtualenv
+#     prompt_git
+# )
 
 prompt_context() {
-    prompt_segment red white "$(date '+%Y-%m-%d %H:%M:%S') > $USER"
+   prompt_segment red white "$(date '+%Y-%m-%d %H:%M:%S') > $USER"
 }
 
 prompt_dir() {
     prompt_segment blue gray '%~'
 }
+
+# prompt_git() {
+# }
 
 autoload -U +X compinit && compinit
 autoload -U +X bashcompinit && bashcompinit
@@ -157,7 +161,7 @@ export PATH="/usr/local/opt/libpq/bin:$PATH"
 export PATH="${HOME}/.gem/ruby/2.6.0/bin:$PATH"
 
 # GPG requires TTY
-export GPG_TTY=$(tty)
+# export GPG_TTY=$(tty)
 
 # Set the default quoting style to literal
 export QUOTING_STYLE=literal
@@ -168,8 +172,8 @@ export PATH="$PATH:$HOME/.local/bin"
 # FZF - File Finder
 eval "$(fzf --zsh)"
 
-# In order to reattach the screen with the SSH ForwardAgent
-# We need this method on the servers/remote machines:
+# # In order to reattach the screen with the SSH ForwardAgent
+# # We need this method on the servers/remote machines:
 if [ -z "${STY}" -a -t 0 ]; then
     reattach () {
         if [ -n "${SSH_AUTH_SOCK}" ]; then
@@ -197,10 +201,10 @@ if [[ -d "$HOME/Works/autodesk/etc/scripts/" ]]; then
     PATH="$HOME/Works/autodesk/etc/scripts/:$PATH"
 fi
 
-# GPG Forwarding Activation
-export GPG_TTY=$(tty)
-
 # rbenv
 if command -v rbenv >/dev/null 2>&1; then
     eval "$(rbenv init - zsh)"
 fi
+
+# # Github Copilot Commandline client integration
+ eval "$(gh copilot alias -- zsh)"

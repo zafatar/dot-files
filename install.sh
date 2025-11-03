@@ -179,6 +179,7 @@ create_symlinks() {
         ".aliases.sh:$DOTFILES_DIR/scripts/.aliases.sh"
         ".aliases-git.sh:$DOTFILES_DIR/scripts/.aliases-git.sh"
         ".aws.sh:$DOTFILES_DIR/scripts/.aws.sh"
+        ".functions.sh:$DOTFILES_DIR/scripts/.functions.sh"
     )
     
     # Only create color-tab symlink if the file exists
