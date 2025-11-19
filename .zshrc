@@ -161,7 +161,7 @@ export PATH="/usr/local/opt/libpq/bin:$PATH"
 export PATH="${HOME}/.gem/ruby/2.6.0/bin:$PATH"
 
 # GPG requires TTY
-# export GPG_TTY=$(tty)
+export GPG_TTY=$(tty)
 
 # Set the default quoting style to literal
 export QUOTING_STYLE=literal
