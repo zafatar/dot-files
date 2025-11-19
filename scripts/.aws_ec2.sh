@@ -200,20 +200,20 @@ aws-list-amis() {
     local aws_result
     if [ "$include_public" = true ]; then
         if [ -n "$search_pattern" ]; then
-            aws_result=$(aws ec2 describe-images --owners self amazon --filters "Name=name,Values=*${search_pattern}*" "Name=state,Values=available")
+            aws_result=$(aws ec2 describe-images --owners self amazon --filters "Name=name,Values=*${search_pattern}*" "Name=state,Values=available" --max-items 1000)
         else
-            aws_result=$(aws ec2 describe-images --owners self amazon --filters "Name=state,Values=available")
+            aws_result=$(aws ec2 describe-images --owners self amazon --filters "Name=state,Values=available" --max-items 1000)
         fi
     else
         if [ -n "$search_pattern" ]; then
-            aws_result=$(aws ec2 describe-images --owners self --filters "Name=name,Values=*${search_pattern}*" "Name=state,Values=available")
+            aws_result=$(aws ec2 describe-images --filters "Name=name,Values=*${search_pattern}*" "Name=state,Values=available" --max-items 1000)
         else
-            aws_result=$(aws ec2 describe-images --owners self --filters "Name=state,Values=available")
+            aws_result=$(aws ec2 describe-images --filters "Name=state,Values=available" --max-items 1000)
         fi
     fi
     
     (
-        printf "\033[1;37m%-21s %-60s %-15s %-8s %-12s %s\033[0m\n" "AMI_ID" "NAME" "STATE" "ARCH" "DATE" "DESCRIPTION"
+        printf "\033[1;37m%-21s %-60s %-15s %-12s %-8s %-12s %s\033[0m\n" "AMI_ID" "NAME" "STATE" "OWNER_ID" "ARCH" "DATE" "DESCRIPTION"
         
         # Process the results
         echo "$aws_result" | jq -r '
@@ -222,12 +222,13 @@ aws-list-amis() {
                 .ImageId,
                 (.Name // "N/A"),
                 .State,
+                .OwnerId,
                 .Architecture,
                 .CreationDate,
                 (.Description // "")
             ] | 
             @tsv
-        ' | while IFS=$'\t' read -r ami_id name state arch creation_date description; do
+        ' | while IFS=$'\t' read -r ami_id name state owner_id arch creation_date description; do
             # Format creation date to show only date part
             formatted_date=$(echo "$creation_date" | cut -d'T' -f1 2>/dev/null || echo "$creation_date")
             
@@ -242,8 +243,8 @@ aws-list-amis() {
             fi
             
             # Output for sorting with date info
-            printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
-                "$ami_id" "$name" "$state" "$arch" "$formatted_date" "$description" "$creation_date"
+            printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+                "$ami_id" "$name" "$state" "$owner_id" "$arch" "$formatted_date" "$description" "$creation_date"
         done | {
             # Sort based on the option
             case "$sort_option" in
@@ -257,7 +258,7 @@ aws-list-amis() {
                     sort -t$'\t' -k2     # Default to name sorting
                     ;;
             esac
-        } | while IFS=$'\t' read -r ami_id name state arch formatted_date description creation_date; do
+        } | while IFS=$'\t' read -r ami_id name state owner_id arch formatted_date description creation_date; do
             # Color states differently
             case "$state" in
                 "available") state_color=$'\033[1;32m' ;;  # Bright Green
@@ -273,8 +274,8 @@ aws-list-amis() {
                 *)           arch_color=$'\033[0;37m' ;;   # Light Gray
             esac
             
-            printf "\033[1;34m%-21s\033[0m \033[0;33m%-40s\033[0m ${state_color}%-15s\033[0m ${arch_color}%-8s\033[0m \033[0;32m%-12s\033[0m \033[0;37m%s\033[0m\n" \
-                "$ami_id" "$name" "$state" "$arch" "$formatted_date" "$description"
+            printf "\033[1;34m%-21s\033[0m \033[0;33m%-60s\033[0m ${state_color}%-15s\033[0m \033[0;35m%-12s\033[0m ${arch_color}%-8s\033[0m \033[0;32m%-12s\033[0m \033[0;37m%s\033[0m\n" \
+                "$ami_id" "$name" "$state" "$owner_id" "$arch" "$formatted_date" "$description"
         done
     )
     
