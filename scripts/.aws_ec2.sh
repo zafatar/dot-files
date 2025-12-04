@@ -3,7 +3,7 @@
 # AWS EC2 Functions
 # This file contains all EC2-related AWS CLI wrapper functions
 
-aws-running-instances-v2() {
+aws-ec2-running-instances() {
     (
         printf "\033[1;37m%-19s %-15s %-10s %-15s %s\033[0m\n" "INSTANCE_ID" "TYPE" "STATE" "PRIVATE_IP" "NAME"
         aws ec2 describe-instances | jq -r '
@@ -25,8 +25,8 @@ aws-running-instances-v2() {
 }
 
 # AWS ALL INSTANCES - Fixed version with proper ANSI escape sequences
-# Usage: aws-all-instances [--sort-by-ip] [--sort-by-name]
-aws-all-instances() {
+# Usage: aws-ec2-instances [--sort-by-ip] [--sort-by-name]
+aws-ec2-instances() {
     local sort_by_ip=false
     local sort_by_name=false
     
@@ -43,7 +43,7 @@ aws-all-instances() {
                 ;;
             *)
                 echo "Unknown option: $1"
-                echo "Usage: aws-all-instances [--sort-by-ip] [--sort-by-name]"
+                echo "Usage: aws-ec2-instances [--sort-by-ip] [--sort-by-name]"
                 return 1
                 ;;
         esac
@@ -52,7 +52,7 @@ aws-all-instances() {
     # Check for conflicting sort options
     if [[ "$sort_by_ip" == true && "$sort_by_name" == true ]]; then
         echo "Error: Cannot use both --sort-by-ip and --sort-by-name flags simultaneously"
-        echo "Usage: aws-all-instances [--sort-by-ip] [--sort-by-name]"
+        echo "Usage: aws-ec2-instances [--sort-by-ip] [--sort-by-name]"
         return 1
     fi
     
@@ -163,8 +163,8 @@ aws-all-instances() {
 } 
 
 # AWS LIST AMIS - List AMIs in the AWS account
-# Usage: aws-list-amis [--include-public] [--search-name <pattern>] [--sort-by-name|--sort-by-date]
-aws-list-amis() {
+# Usage: aws-amis [--include-public] [--search-name <pattern>] [--sort-by-name|--sort-by-date]
+aws-amis() {
     local include_public=false
     local search_pattern=""
     local sort_option="name"
@@ -190,7 +190,7 @@ aws-list-amis() {
                 ;;
             *)
                 echo "Unknown option: $1"
-                echo "Usage: aws-list-amis [--include-public] [--search-name <pattern>] [--sort-by-name|--sort-by-date]"
+                echo "Usage: aws-amis [--include-public] [--search-name <pattern>] [--sort-by-name|--sort-by-date]"
                 return 1
                 ;;
         esac
