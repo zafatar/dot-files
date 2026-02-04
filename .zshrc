@@ -196,7 +196,6 @@ if [[ -f "/opt/homebrew/opt/chruby/share/chruby/chruby.sh" && -f "/opt/homebrew/
     chruby ruby-3.3.4
 fi
 
-
 if [[ -d "$HOME/Works/autodesk/etc/scripts/" ]]; then
     PATH="$HOME/Works/autodesk/etc/scripts/:$PATH"
 fi
@@ -207,4 +206,9 @@ if command -v rbenv >/dev/null 2>&1; then
 fi
 
 # # Github Copilot Commandline client integration
- eval "$(gh copilot alias -- zsh)"
+# eval "$(gh copilot alias -- zsh)"
+
+# NVM - node
+export NVM_DIR="$HOME/.nvm"
+[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
