@@ -128,7 +128,7 @@ source $HOME/.aws.sh
 source $HOME/.functions.sh
 
 # agnoster case:
-DEFAULT_USER="$(whoami)"
+DEFAULT_USER="$USER"
 
 # AGNOSTER_PROMPT_SEGMENTS=(
 #     prompt_status
@@ -148,7 +148,7 @@ prompt_dir() {
 # prompt_git() {
 # }
 
-autoload -U +X compinit && compinit
+# compinit already called by oh-my-zsh, only bashcompinit needed for terraform
 autoload -U +X bashcompinit && bashcompinit
 
 complete -o nospace -C /usr/local/bin/terraform terraform
@@ -190,25 +190,42 @@ export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-if [[ -f "/opt/homebrew/opt/chruby/share/chruby/chruby.sh" && -f "/opt/homebrew/opt/chruby/share/chruby/auto.sh" && -x "$(command -v chruby)" ]]; then
-    source /opt/homebrew/opt/chruby/share/chruby/chruby.sh
-    source /opt/homebrew/opt/chruby/share/chruby/auto.sh
-    chruby ruby-3.3.4
+# Lazy-load chruby - only initializes when ruby/gem/bundle/chruby is first called
+if [[ -f "/opt/homebrew/opt/chruby/share/chruby/chruby.sh" && -f "/opt/homebrew/opt/chruby/share/chruby/auto.sh" ]]; then
+    _load_chruby() {
+        unfunction chruby ruby gem bundle 2>/dev/null
+        source /opt/homebrew/opt/chruby/share/chruby/chruby.sh
+        source /opt/homebrew/opt/chruby/share/chruby/auto.sh
+        chruby ruby-3.3.4
+    }
+    chruby() { _load_chruby; chruby "$@"; }
+    ruby()   { _load_chruby; ruby "$@"; }
+    gem()    { _load_chruby; gem "$@"; }
+    bundle() { _load_chruby; bundle "$@"; }
 fi
 
 if [[ -d "$HOME/Works/autodesk/etc/scripts/" ]]; then
     PATH="$HOME/Works/autodesk/etc/scripts/:$PATH"
 fi
 
-# rbenv
-if command -v rbenv >/dev/null 2>&1; then
-    eval "$(rbenv init - zsh)"
-fi
+# Lazy-load rbenv - only initializes when rbenv is first called
+rbenv() {
+    unfunction rbenv
+    eval "$(command rbenv init - zsh)"
+    rbenv "$@"
+}
 
 # # Github Copilot Commandline client integration
 # eval "$(gh copilot alias -- zsh)"
 
-# NVM - node
+# NVM - node (lazy-loaded for fast shell startup)
 export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+_load_nvm() {
+    unfunction nvm node npm npx 2>/dev/null
+    [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
+    [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+}
+nvm()  { _load_nvm; nvm "$@"; }
+node() { _load_nvm; node "$@"; }
+npm()  { _load_nvm; npm "$@"; }
+npx()  { _load_nvm; npx "$@"; }
