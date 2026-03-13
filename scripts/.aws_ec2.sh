@@ -75,13 +75,14 @@ aws-ec2-instances() {
             .State.Name, 
             (.PrivateIpAddress // "N/A"), 
             ((.Tags[]? | select(.Key == "Name") | .Value) // ""),
-            (.ImageId // "N/A")
+            (.ImageId // "N/A"),
+            (.Placement.AvailabilityZone // "N/A")
         ] | 
         @tsv
     ')
     
     # Count instances by state
-    while IFS=$'\t' read -r instance_id type state private_ip name ami_id; do
+    while IFS=$'\t' read -r instance_id type state private_ip name ami_id az; do
         case "$state" in
             "running")   ((running++)) ;;
             "stopped")   ((stopped++)) ;;
@@ -95,11 +96,11 @@ aws-ec2-instances() {
     done <<< "$instance_data"
     
     (
-        printf "\033[1;37m%-19s %-15s %-14s %-15s %-21s %s\033[0m\n" "INSTANCE_ID" "TYPE" "STATE" "PRIVATE_IP" "AMI_ID" "NAME"
+        printf "\033[1;37m%-19s %-15s %-14s %-15s %-21s %-14s %s\033[0m\n" "INSTANCE_ID" "TYPE" "STATE" "PRIVATE_IP" "AMI_ID" "AZ" "NAME"
         
         # Sort and display the data
         if [ "$sort_by_ip" = true ]; then
-            echo "$instance_data" | sort -t$'\t' -k4 -V | while IFS=$'\t' read -r instance_id type state private_ip name ami_id; do
+            echo "$instance_data" | sort -t$'\t' -k4 -V | while IFS=$'\t' read -r instance_id type state private_ip name ami_id az; do
                 # Color states differently
                 case "$state" in
                     "running")   state_color=$'\033[1;32m' ;;  # Bright Green
@@ -111,11 +112,11 @@ aws-ec2-instances() {
                     *)           state_color=$'\033[0;37m' ;;  # Light Gray
                 esac
                 
-                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-14s\033[0m \033[0;34m%-15s\033[0m \033[1;35m%-21s\033[0m \033[0;35m%s\033[0m\n" \
-                    "$instance_id" "$type" "$state" "$private_ip" "$ami_id" "$name"
+                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-14s\033[0m \033[0;34m%-15s\033[0m \033[1;35m%-21s\033[0m \033[0;33m%-14s\033[0m \033[0;35m%s\033[0m\n" \
+                    "$instance_id" "$type" "$state" "$private_ip" "$ami_id" "$az" "$name"
             done
         elif [ "$sort_by_name" = true ]; then
-            echo "$instance_data" | sort -t$'\t' -k5 | while IFS=$'\t' read -r instance_id type state private_ip name ami_id; do
+            echo "$instance_data" | sort -t$'\t' -k5 | while IFS=$'\t' read -r instance_id type state private_ip name ami_id az; do
                 # Color states differently
                 case "$state" in
                     "running")   state_color=$'\033[1;32m' ;;  # Bright Green
@@ -127,11 +128,11 @@ aws-ec2-instances() {
                     *)           state_color=$'\033[0;37m' ;;  # Light Gray
                 esac
                 
-                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-14s\033[0m \033[0;34m%-15s\033[0m \033[1;35m%-21s\033[0m \033[0;35m%s\033[0m\n" \
-                    "$instance_id" "$type" "$state" "$private_ip" "$ami_id" "$name"
+                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-14s\033[0m \033[0;34m%-15s\033[0m \033[1;35m%-21s\033[0m \033[0;33m%-14s\033[0m \033[0;35m%s\033[0m\n" \
+                    "$instance_id" "$type" "$state" "$private_ip" "$ami_id" "$az" "$name"
             done
         else
-            echo "$instance_data" | while IFS=$'\t' read -r instance_id type state private_ip name ami_id; do
+            echo "$instance_data" | while IFS=$'\t' read -r instance_id type state private_ip name ami_id az; do
                 # Color states differently
                 case "$state" in
                     "running")   state_color=$'\033[1;32m' ;;  # Bright Green
@@ -143,8 +144,8 @@ aws-ec2-instances() {
                     *)           state_color=$'\033[0;37m' ;;  # Light Gray
                 esac
                 
-                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-14s\033[0m \033[0;34m%-15s\033[0m \033[1;35m%-21s\033[0m \033[0;35m%s\033[0m\n" \
-                    "$instance_id" "$type" "$state" "$private_ip" "$ami_id" "$name"
+                printf "\033[1;36m%-19s\033[0m \033[0;32m%-15s\033[0m ${state_color}%-14s\033[0m \033[0;34m%-15s\033[0m \033[1;35m%-21s\033[0m \033[0;33m%-14s\033[0m \033[0;35m%s\033[0m\n" \
+                    "$instance_id" "$type" "$state" "$private_ip" "$ami_id" "$az" "$name"
             done
         fi
     )
