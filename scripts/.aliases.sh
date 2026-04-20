@@ -41,7 +41,7 @@ alias emacs="emacs -nw"
 alias ff="fastfetch"
 alias ad="cd ~/Works/autodesk"
 alias personal="cd ~/Works/personal"
-# alias python="/usr/local/bin/python3"
+alias pems="cd ~/Works/autodesk/vault/pems"
 alias update="omz update && brew outdated && brew upgrade"
 
 alias pycache_clean="find . | grep -E \"(/__pycache__$|\.pyc$|\.pyo$)\" | xargs rm -rf"
@@ -59,11 +59,18 @@ alias autodesk_ips="curl -s -XGET https://ipsafelist.autodesk.com/ipsafelist.jso
 
 alias run_jupyter="docker run -it --rm -p 9999:9999 -e JUPYTER_PORT=9999 -v $PWD:/home/jovyan --name jupyter jupyter/base-notebook"
 
+# TOFU
+alias tw="tofu workspace"
 alias twl="tofu workspace list"
-
-alias twn="tofu workspace new" 
-
+alias twn="tofu workspace new"
+alias tws="tofu workspace select"
 alias tf="tofu"
+
+# AWS
+alias al="aws-login"
+
+# Argo kubectl
+alias argo-admin="kops export kubecfg --name cumin.blank.autodesk.com --state s3://cumin-kops-state --admin --kubeconfig $HOME/.kube/config.kops-cumin.blank.autodesk.com && export KUBECONFIG=$HOME/.kube/config.kops-cumin.blank.autodesk.com && kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath=\"{.data.password}\" | base64 -d"
 
 # Git Aliases.
 source $HOME/.aliases-git.sh
