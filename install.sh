@@ -144,17 +144,17 @@ install_oh_my_zsh() {
 # Install ZSH plugins
 install_zsh_plugins() {
     local plugins=(
-        "zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions"
-        "zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting.git"
-        "zsh-completions:https://github.com/zsh-users/zsh-completions"
-        "zsh-docker-aliases:https://github.com/akarzim/zsh-docker-aliases.git"
+        "zsh-autosuggestions|https://github.com/zsh-users/zsh-autosuggestions"
+        "zsh-syntax-highlighting|https://github.com/zsh-users/zsh-syntax-highlighting.git"
+        "zsh-completions|https://github.com/zsh-users/zsh-completions"
+        "zsh-docker-aliases|https://github.com/akarzim/zsh-docker-aliases.git"
     )
     
     local custom_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
     
     for plugin_info in "${plugins[@]}"; do
-        local plugin_name="${plugin_info%%:*}"
-        local plugin_url="${plugin_info##*:}"
+        local plugin_name="${plugin_info%%|*}"
+        local plugin_url="${plugin_info#*|}"
         local plugin_dir="$custom_dir/$plugin_name"
         
         if [[ -d "$plugin_dir" ]]; then
