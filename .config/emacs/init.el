@@ -1,15 +1,17 @@
+;;; -*- lexical-binding: t; -*-
 (require 'org)
 (org-babel-load-file
-    (expand-file-name "config.org" 
-                      user-emacs-directory))
+ (expand-file-name "config.org" user-emacs-directory))
 
-
-;;; -*- lexical-binding: t -*-
-(setq gc-cons-threshold (* 50 1000 1000))
+(defconst zafatar/default-gc-cons-threshold (* 16 1024 1024)
+  "GC threshold restored after startup.")
 
 ;; Startup timer
 (add-hook 'emacs-startup-hook
           (lambda ()
+            ;; Restore conservative GC settings after init for steadier runtime.
+            (setq gc-cons-threshold zafatar/default-gc-cons-threshold
+                  gc-cons-percentage 0.1)
             (message "Emacs ready in %s with %d garbage collections."
                      (format "%.2f seconds"
                              (float-time
@@ -17,9 +19,9 @@
                      gcs-done)))
 
 ;; Check if system is Darwin/macOS
-(defun is-macos ()
-  "Return true if system is darwin-based (Mac OS X)"
-  (string-equal system-type "darwin"))
+(defun zafatar/macos-p ()
+  "Return non-nil when running on macOS."
+  (eq system-type 'darwin))
 
 ;; -----------
 ;; USE PACKAGE

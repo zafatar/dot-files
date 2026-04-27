@@ -31,67 +31,67 @@
 ** ELPACA
 
 #+BEGIN_SRC emacs-lisp
-(defvar elpaca-installer-version 0.7)
+;; Official Elpaca installer (keep elpaca-installer-version in sync with
+;; elpaca/sources/elpaca/doc/installer.el or you get a version-mismatch warning).
+(defvar elpaca-installer-version 0.12)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-sources-directory (expand-file-name "sources/" elpaca-directory))
+;; Treeless clones (Elpaca's default) leave some repos with an empty working
+;; tree, which later errors as `Unable to find main elisp file for "<pkg>"'
+;; (seen with elpy and kiwanami/emacs-deferred-backed packages such as
+;; deferred/concurrent). Full clones avoid that entire class of failure at
+;; the cost of a bit more disk. `defvar' before elpaca loads so elpaca's
+;; own `defvar' in elpaca.el leaves our value alone.
+(defvar elpaca-order-defaults '(:type git :protocol https :inherit t :depth nil))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-			:ref nil
-			:files (:defaults (:exclude "extensions"))
-			:build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
- (build (expand-file-name "elpaca/" elpaca-builds-directory))
- (order (cdr elpaca-order))
- (default-directory repo))
+                              :ref nil :depth 1 :inherit ignore
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca-activate)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-sources-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
   (add-to-list 'load-path (if (file-exists-p build) build repo))
   (unless (file-exists-p repo)
-  (make-directory repo t)   
-    (when (< emacs-major-version 28) (require 'subr-x))
+    (make-directory repo t)
+    (when (<= emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-  (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-	   ((zerop (call-process "git" nil buffer t "clone"
-				 (plist-get order :repo) repo)))
-	   ((zerop (call-process "git" nil buffer t "checkout"
-				 (or (plist-get order :ref) "--"))))
-	   (emacs (concat invocation-directory invocation-name))
-((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-				 "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-	   ((require 'elpaca))
-	   ((elpaca-generate-autoloads "elpaca" repo)))
-      (kill-buffer buffer)
-    (error "%s" (with-current-buffer buffer (buffer-string))))
-((error) (warn "%s" err) (delete-directory repo 'recursive))))
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
   (unless (require 'elpaca-autoloads nil t)
     (require 'elpaca)
     (elpaca-generate-autoloads "elpaca" repo)
-    (load "./elpaca-autoloads")))
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
 ;; Install use-package support
 (elpaca elpaca-use-package
-  ;; Enable :elpaca use-package keyword.
   (elpaca-use-package-mode)
-  ;; Assume :elpaca t unless otherwise specified.
   (setq elpaca-use-package-by-default t))
 
-;; Block until current queue processed.
+;; Block until elpaca-use-package is installed (needed before other use-package forms).
 (elpaca-wait)
 
-;;When installing a package which modifies a form used at the top-level
-;;(e.g. a package which adds a use-package key word),
-;;use `elpaca-wait' to block until that package has been installed/configured.
-;;For example:
-;;(use-package general :demand t)
-;;(elpaca-wait)
+;; Packages needed while this file loads must use :ensure (:wait t) (see Elpaca README).
+;; Heavy UI can go on `elpaca-after-init-hook' instead.
 
-;;Turns off elpaca-use-package-mode current declartion
-;;Note this will cause the declaration to be interpreted immediately (not deferred).
-;;Useful for configuring built-in emacs features.
-;;(use-package emacs :elpaca nil :config (setq ring-bell-function #'ignore))
-
-;; Don't install anything. Defer execution of BODY
-;;(elpaca nil (message "deferred"))
+;;Turns off elpaca-use-package-mode current declaration
+;;(use-package emacs :ensure nil :config (setq ring-bell-function #'ignore))
 #+END_SRC
 
 ;; #+BEGIN_SRC emacs-lisp
@@ -101,7 +101,10 @@
 ** General Keybindings
 
 #+BEGIN_SRC emacs-lisp
+  ;; :ensure (:wait t) blocks until the package is built so `require' succeeds during init.
   (use-package general
+    :ensure (:wait t)
+    :demand t
     :config
 
     ;; set up 'SPC' as the global leader key
@@ -160,7 +163,9 @@ This is an icon set that can be used with dashboard, dired, ibuffer and other Em
   :if (display-graphic-p))
 
 (use-package all-the-icons-dired
-  :hook (dired-mode . (lambda () (all-the-icons-dired-mode t))))
+  :ensure (:wait t)
+  :if (display-graphic-p)
+  :hook (dired-mode . all-the-icons-dired-mode))
 #+end_src
 
 
@@ -237,37 +242,47 @@ Let's make GNU Emacs look a little better.
 + Ivy-rich allows us to add descriptions alongside the commands in M-x.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package counsel
-    :after ivy
-    :config (counsel-mode))
-  
+  ;; Declare ivy before counsel; use :ensure (:wait t) so Elpaca finishes before `require'.
   (use-package ivy
+    :ensure (:wait t)
+    :demand t
     :bind
     ;; ivy-resume resumes the last Ivy-based completion.
     (("C-c C-r" . ivy-resume)
      ("C-x B" . ivy-switch-buffer-other-window))
     :custom
-    (setq ivy-use-virtual-buffers t)
-    (setq ivy-count-format "(%d/%d) ")
-    (setq enable-recursive-minibuffers t)
+    (ivy-use-virtual-buffers t)
+    (ivy-count-format "(%d/%d) ")
+    (enable-recursive-minibuffers t)
     :config
     (ivy-mode))
 
-  (use-package all-the-icons-ivy-rich
-    :ensure t
-    :init (all-the-icons-ivy-rich-mode 1))
-
-  (use-package ivy-rich
+  (use-package counsel
+    :ensure (:wait t)
     :after ivy
-    :ensure t
-    :init (ivy-rich-mode 1) ;; this gets us descriptions in M-x.
+    :demand t
+    :config (counsel-mode))
+
+  ;; Declare ivy-rich BEFORE all-the-icons-ivy-rich. Otherwise Elpaca queues
+  ;; ivy-rich as a transitive dep first, and the later explicit declaration
+  ;; aborts init with "ivy-rich previously queued as dependency of ...".
+  (use-package ivy-rich
+    :ensure (:wait t)
+    :after (ivy counsel)
+    :init (ivy-rich-mode 1) ;; descriptions in M-x
     :custom
-    (ivy-virtual-abbreviate 'full
-     ivy-rich-switch-buffer-align-virtual-buffer t
-     ivy-rich-path-style 'abbrev)
+    (ivy-virtual-abbreviate 'full)
+    (ivy-rich-switch-buffer-align-virtual-buffer t)
+    (ivy-rich-path-style 'abbrev)
     :config
     (ivy-set-display-transformer 'ivy-switch-buffer
                                  'ivy-rich-switch-buffer-transformer))
+
+  (use-package all-the-icons-ivy-rich
+    :ensure (:wait t)
+    :after ivy-rich
+    :if (display-graphic-p)
+    :init (all-the-icons-ivy-rich-mode 1))
 
 #+END_SRC
 
@@ -284,11 +299,12 @@ Let's make GNU Emacs look a little better.
 ** Enabling Org Bullets
  Org-bullets gives us attractive bullets rather than asterisks.
 
-#+begin_src emacs-lisp 
-  (use-package org-bullets)
+#+begin_src emacs-lisp
+  (use-package org-bullets
+    :ensure (:wait t)
+    :hook (org-mode . org-bullets-mode))
   ;; (setq org-bullets-bullet-list '("☯" "○" "✸" "✿" "~"))
   (add-hook 'org-mode-hook 'org-indent-mode)
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 #+end_src
 
 ** Disable Electric Indent
@@ -340,6 +356,14 @@ The first of the two lines below designates the directory where will place all o
 * Python-related packages
 
 #+begin_src emacs-lisp
+  ;; Pin company to the last tagged release. `company-mode' HEAD has malformed
+  ;; Package-Requires metadata (upstream commit added posframe dep without
+  ;; closing paren), which otherwise surfaces as
+  ;; `Warning (emacs): Malformed dependency metadata: "company.el"'.
+  ;; elpy pulls company in transitively, so we declare it first with a ref.
+  (use-package company
+    :ensure (:ref "1.0.2"))
+
   (use-package elpy
     :ensure t
     :init
@@ -350,7 +374,8 @@ The first of the two lines below designates the directory where will place all o
     :init (global-flycheck-mode))
 
   (use-package blacken
-    :ensure t)
+    :ensure t
+    :hook (python-mode . blacken-mode))
 
   (use-package py-autopep8
     :ensure t
@@ -380,6 +405,7 @@ The first of the two lines below designates the directory where will place all o
 (use-package powerline
    :ensure t
    :config
-   (add-hook 'after-init-hook 'powerline-center-evil-theme))
+   ;; powerline-center-evil-theme would require evil, which isn't installed.
+   (add-hook 'elpaca-after-init-hook #'powerline-default-theme))
 #+END_SRC
 
