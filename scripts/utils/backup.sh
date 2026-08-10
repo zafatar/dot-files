@@ -104,7 +104,7 @@ list_files() {
         else
             printf "  📄 %s\n" "$file"
         fi
-        ((count++))
+        count=$((count + 1))
     done < <(get_dotfiles_list)
     
     echo
@@ -119,14 +119,19 @@ create_backup() {
     
     local count=0
     while IFS= read -r file; do
-        local filename="$(basename "$file")"
-        local backup_path="$backup_dir/$filename"
-        
+        # Store each file under its path relative to $HOME rather than by
+        # basename alone. Flattening loses the location, so a nested file such
+        # as ~/.config/emacs/init.el could only ever be restored to ~/init.el.
+        local relative_path="${file#"$HOME"/}"
+        local backup_path="$backup_dir/$relative_path"
+
+        mkdir -p "$(dirname "$backup_path")"
+
         if [[ -L "$file" ]]; then
             # For symlinks, copy the target file
             if cp -L "$file" "$backup_path" 2>/dev/null; then
                 log "SUCCESS" "Backed up (symlink): $file"
-                ((count++))
+                count=$((count + 1))
             else
                 log "WARNING" "Failed to backup symlink: $file"
             fi
@@ -134,7 +139,7 @@ create_backup() {
             # For regular files
             if cp "$file" "$backup_path" 2>/dev/null; then
                 log "SUCCESS" "Backed up: $file"
-                ((count++))
+                count=$((count + 1))
             else
                 log "WARNING" "Failed to backup: $file"
             fi
@@ -174,26 +179,30 @@ restore_backup() {
     log "INFO" "Restoring from backup: $backup_dir"
     
     local count=0
-    for backup_file in "$backup_dir"/*; do
-        if [[ -f "$backup_file" && "$(basename "$backup_file")" != "MANIFEST.txt" ]]; then
-            local filename="$(basename "$backup_file")"
-            local target_file="$HOME/$filename"
-            
-            # Remove existing file/symlink
-            if [[ -e "$target_file" || -L "$target_file" ]]; then
-                rm -f "$target_file"
-            fi
-            
-            # Restore file
-            if cp "$backup_file" "$target_file"; then
-                log "SUCCESS" "Restored: $target_file"
-                ((count++))
-            else
-                log "ERROR" "Failed to restore: $target_file"
-            fi
+    # Walk the whole backup tree so nested files (e.g. .config/emacs/init.el)
+    # are restored to their original location, not to $HOME/<basename>.
+    while IFS= read -r backup_file; do
+        local relative_path="${backup_file#"$backup_dir"/}"
+        [[ "$relative_path" == "MANIFEST.txt" ]] && continue
+
+        local target_file="$HOME/$relative_path"
+
+        # Remove existing file/symlink
+        if [[ -e "$target_file" || -L "$target_file" ]]; then
+            rm -f "$target_file"
         fi
-    done
-    
+
+        mkdir -p "$(dirname "$target_file")"
+
+        # Restore file
+        if cp "$backup_file" "$target_file"; then
+            log "SUCCESS" "Restored: $target_file"
+            count=$((count + 1))
+        else
+            log "ERROR" "Failed to restore: $target_file"
+        fi
+    done < <(find "$backup_dir" -type f | sort)
+
     log "SUCCESS" "Restore completed: $count files restored"
 }
 
@@ -237,8 +246,9 @@ main() {
     fi
     
     if [[ "$restore_mode" == true ]]; then
-        restore_backup "$restore_dir"
-        exit $?
+        local rc=0
+        restore_backup "$restore_dir" || rc=$?
+        exit $rc
     fi
     
     # Create backup

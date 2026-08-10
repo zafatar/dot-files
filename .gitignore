@@ -12,3 +12,6 @@
 
 # macOS specific files.
 .DS_Store
+
+# Installer output
+install.log

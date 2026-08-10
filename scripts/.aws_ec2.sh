@@ -385,6 +385,7 @@ JQE
 
 # AWS LIST AMIS
 # Usage: aws-amis [--include-public] [--search-name <pattern>] [--sort-by-name|--sort-by-date]
+# Defaults to AMIs owned by the calling account; --include-public adds Amazon-owned images.
 # --search-name: substring match on AMI name; AWS treats * and ? as wildcards in the filter value.
 # Results paginate at 1000 images per API call; all pages are merged (may be slow for huge result sets).
 aws-amis() {
@@ -419,9 +420,13 @@ aws-amis() {
         esac
     done
 
+    # describe-images with no --owners returns every public AMI in the region
+    # (tens of thousands), so default to self and widen only when asked.
     local -a aws_amis_args=()
     if [[ "$include_public" == true ]]; then
         aws_amis_args+=(--owners self amazon)
+    else
+        aws_amis_args+=(--owners self)
     fi
     if [[ -n "$search_pattern" ]]; then
         aws_amis_args+=(--filters "Name=state,Values=available" "Name=name,Values=*${search_pattern}*")

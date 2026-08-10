@@ -10,7 +10,9 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES_DIR="$SCRIPT_DIR"
 readonly BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 readonly LOG_FILE="$DOTFILES_DIR/install.log"
-readonly CONFIG_FILE="$DOTFILES_DIR/config/install.yaml"
+
+# Set by --dry-run. When true, mutating commands are logged instead of run.
+DRY_RUN=false
 
 # Colors for output
 readonly RED='\033[0;31m'
@@ -41,6 +43,15 @@ error_exit() {
     log "ERROR" "$1"
     echo -e "${RED}Installation failed. Check $LOG_FILE for details.${NC}"
     exit 1
+}
+
+# Run a command, or just report it when --dry-run is active.
+maybe_run() {
+    if [[ "$DRY_RUN" == true ]]; then
+        log "INFO" "[dry-run] would run: $*"
+        return 0
+    fi
+    "$@"
 }
 
 # Cleanup function
@@ -79,10 +90,13 @@ detect_os() {
 
 # Create backup
 create_backup() {
+    # Keep this list in sync with create_symlinks below.
     local files_to_backup=(
         "$HOME/.zshrc"
         "$HOME/.aliases.sh"
         "$HOME/.aliases-git.sh"
+        "$HOME/.aws.sh"
+        "$HOME/.functions.sh"
         "$HOME/.color-tab.iterm.sh"
         "$HOME/.completion-git.sh"
         # Emacs configuration
@@ -91,18 +105,34 @@ create_backup() {
         "$HOME/.config/emacs/config.org"
         "$HOME/.config/emacs/themes/zenburn-theme.el"
     )
-    
-    log "INFO" "Creating backup directory: $BACKUP_DIR"
-    mkdir -p "$BACKUP_DIR"
-    
+
+    if [[ "$DRY_RUN" != true ]]; then
+        mkdir -p "$BACKUP_DIR"
+    fi
+
     for file in "${files_to_backup[@]}"; do
         if [[ -f "$file" || -L "$file" ]]; then
+            # Preserve the path relative to $HOME so nested files keep their
+            # location; a flat copy could only be restored to $HOME/<basename>.
+            local relative_path="${file#"$HOME"/}"
+            local backup_path="$BACKUP_DIR/$relative_path"
+
+            if [[ "$DRY_RUN" == true ]]; then
+                log "INFO" "[dry-run] would back up: $file -> $backup_path"
+                continue
+            fi
+
             log "INFO" "Backing up: $file"
-            cp -L "$file" "$BACKUP_DIR/" 2>/dev/null || true
+            mkdir -p "$(dirname "$backup_path")"
+            cp -L "$file" "$backup_path" 2>/dev/null || true
         fi
     done
-    
-    log "SUCCESS" "Backup created at: $BACKUP_DIR"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        log "INFO" "[dry-run] no backup was written"
+    else
+        log "SUCCESS" "Backup created at: $BACKUP_DIR"
+    fi
 }
 
 # Install system dependencies
@@ -116,12 +146,14 @@ install_system_deps() {
         return 0
     fi
     
-    bash "$DOTFILES_DIR/install/${os}-install.sh" || {
+    maybe_run bash "$DOTFILES_DIR/install/${os}-install.sh" || {
         log "ERROR" "Failed to install system dependencies"
         return 1
     }
-    
-    log "SUCCESS" "System dependencies installed"
+
+    if [[ "$DRY_RUN" != true ]]; then
+        log "SUCCESS" "System dependencies installed"
+    fi
 }
 
 # Install Oh My Zsh
@@ -132,7 +164,12 @@ install_oh_my_zsh() {
     fi
     
     log "INFO" "Installing Oh My Zsh"
-    
+
+    if [[ "$DRY_RUN" == true ]]; then
+        log "INFO" "[dry-run] would download and run the Oh My Zsh installer"
+        return 0
+    fi
+
     # Download and install Oh My Zsh
     RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || {
         error_exit "Failed to install Oh My Zsh"
@@ -163,12 +200,14 @@ install_zsh_plugins() {
         fi
         
         log "INFO" "Installing plugin: $plugin_name"
-        git clone "$plugin_url" "$plugin_dir" || {
+        maybe_run git clone "$plugin_url" "$plugin_dir" || {
             log "ERROR" "Failed to install plugin: $plugin_name"
             continue
         }
-        
-        log "SUCCESS" "Plugin installed: $plugin_name"
+
+        if [[ "$DRY_RUN" != true ]]; then
+            log "SUCCESS" "Plugin installed: $plugin_name"
+        fi
     done
 }
 
@@ -194,9 +233,9 @@ create_symlinks() {
     # Emacs configuration (only if it exists)
     if [[ -d "$DOTFILES_DIR/.config/emacs" ]]; then
         log "INFO" "Setting up Emacs configuration"
-        
+
         # Create .config/emacs directory if it doesn't exist
-        mkdir -p "$HOME/.config/emacs/themes"
+        maybe_run mkdir -p "$HOME/.config/emacs/themes"
         
         # Emacs symlinks
         if [[ -f "$DOTFILES_DIR/.config/emacs/init.el" ]]; then
@@ -221,18 +260,24 @@ create_symlinks() {
         local source="${symlink_info##*:}"
         local target_path="$HOME/$target"
         
-        # Remove existing file/symlink
+        if [[ ! -f "$source" ]]; then
+            log "WARNING" "Source file not found: $source"
+            continue
+        fi
+
+        if [[ "$DRY_RUN" == true ]]; then
+            log "INFO" "[dry-run] would link: $target_path -> $source"
+            continue
+        fi
+
+        # Replace whatever is there with a fresh symlink
         if [[ -e "$target_path" || -L "$target_path" ]]; then
             rm -f "$target_path"
         fi
-        
-        # Create symlink
-        if [[ -f "$source" ]]; then
-            ln -s "$source" "$target_path"
-            log "SUCCESS" "Created symlink: $target_path -> $source"
-        else
-            log "WARNING" "Source file not found: $source"
-        fi
+
+        mkdir -p "$(dirname "$target_path")"
+        ln -s "$source" "$target_path"
+        log "SUCCESS" "Created symlink: $target_path -> $source"
     done
 }
 
@@ -255,12 +300,17 @@ set_default_shell() {
     
     log "INFO" "Setting ZSH as default shell"
     
-    # Check if zsh is in /etc/shells
-    if ! grep -q "$zsh_path" /etc/shells 2>/dev/null; then
+    if [[ "$DRY_RUN" == true ]]; then
+        log "INFO" "[dry-run] would add $zsh_path to /etc/shells (if missing) and run: chsh -s $zsh_path"
+        return 0
+    fi
+
+    # Check if zsh is in /etc/shells (match the whole line, not a substring)
+    if ! grep -qxF "$zsh_path" /etc/shells 2>/dev/null; then
         log "INFO" "Adding $zsh_path to /etc/shells"
         echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
     fi
-    
+
     # Change shell
     chsh -s "$zsh_path" || {
         log "ERROR" "Failed to change shell to ZSH"
@@ -299,7 +349,7 @@ verify_installation() {
     for symlink in "${expected_symlinks[@]}"; do
         if [[ ! -L "$symlink" ]]; then
             log "ERROR" "Missing or invalid symlink: $symlink"
-            ((errors++))
+            errors=$((errors + 1))
         fi
     done
     
@@ -310,7 +360,7 @@ verify_installation() {
     for plugin in "${expected_plugins[@]}"; do
         if [[ ! -d "$plugin_dir/$plugin" ]]; then
             log "ERROR" "Missing ZSH plugin: $plugin"
-            ((errors++))
+            errors=$((errors + 1))
         fi
     done
     
@@ -319,7 +369,8 @@ verify_installation() {
         return 0
     else
         log "ERROR" "Installation verification failed with $errors errors"
-        return 1
+        # Return the count so callers can report it accurately.
+        return $errors
     fi
 }
 
@@ -342,7 +393,6 @@ EOF
 
 # Main installation function
 main() {
-    local dry_run=false
     local backup_only=false
     local verify_only=false
     local skip_system_deps=false
@@ -357,7 +407,7 @@ main() {
                 exit 0
                 ;;
             -n|--dry-run)
-                dry_run=true
+                DRY_RUN=true
                 shift
                 ;;
             -b|--backup-only)
@@ -390,7 +440,11 @@ main() {
     
     # Initialize log
     echo "# Dotfiles Installation Log - $(date)" > "$LOG_FILE"
-    
+
+    if [[ "$DRY_RUN" == true ]]; then
+        log "INFO" "DRY RUN MODE - no changes will be made"
+    fi
+
     log "INFO" "Starting dotfiles installation"
     log "INFO" "Script directory: $SCRIPT_DIR"
     log "INFO" "Backup directory: $BACKUP_DIR"
@@ -405,21 +459,16 @@ main() {
     
     # Handle special modes
     if [[ "$verify_only" == true ]]; then
-        verify_installation
-        exit $?
+        local rc=0
+        verify_installation || rc=$?
+        exit $rc
     fi
     
     if [[ "$backup_only" == true ]]; then
         create_backup
         exit 0
     fi
-    
-    if [[ "$dry_run" == true ]]; then
-        log "INFO" "DRY RUN MODE - No changes will be made"
-        # Add dry run logic here
-        exit 0
-    fi
-    
+
     # Create backup
     create_backup
     
@@ -443,14 +492,28 @@ main() {
     
     # Set default shell
     set_default_shell
-    
-    # Verify installation
-    verify_installation
-    
-    log "SUCCESS" "Installation completed successfully!"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        echo
+        log "SUCCESS" "Dry run finished - nothing was changed"
+        log "INFO" "Log file: $LOG_FILE"
+        exit 0
+    fi
+
+    # Verify installation. Capture the status so a non-zero error count does
+    # not abort under `set -e` before the summary below is printed.
+    local verify_rc=0
+    verify_installation || verify_rc=$?
+
+    if [[ $verify_rc -ne 0 ]]; then
+        log "WARNING" "Installation finished, but verification reported $verify_rc issue(s)"
+        log "INFO" "Run ./scripts/utils/verify.sh --verbose for details, or --fix to repair"
+    else
+        log "SUCCESS" "Installation completed successfully!"
+    fi
     log "INFO" "Backup created at: $BACKUP_DIR"
     log "INFO" "Log file: $LOG_FILE"
-    
+
     echo
     echo -e "${GREEN}🎉 Dotfiles installation completed!${NC}"
     echo -e "${BLUE}📝 Please restart your terminal or run: ${YELLOW}exec zsh${NC}"

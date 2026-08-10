@@ -27,6 +27,12 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     alias ls='ls -la --color --quoting-style=literal'
 
     alias lsdisk="lsblk -o UUID,NAME,FSTYPE,SIZE,MOUNTPOINT,LABEL,MODEL"
+
+    # Debian/Ubuntu ship these under different binary names than Homebrew does
+    # (packages bat and fd-find). Map them back so the same command works on
+    # both platforms.
+    command -v batcat >/dev/null 2>&1 && alias bat='batcat'
+    command -v fdfind >/dev/null 2>&1 && alias fd='fdfind'
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     # echo -e "\nCreating alisase for linux-based OS...\n"
     alias ls='ls -laG'

@@ -116,6 +116,11 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+# Keep $path (and therefore $PATH) free of duplicates. Without this, every
+# re-source of this file (e.g. the `resetshell` alias) appends the entries
+# below again, so PATH grows without bound.
+typeset -U path PATH
+
 export PATH=/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/local/go/bin/:/opt/apache-maven-3.5.2/bin:$PATH
 
 export LANG=en_US.UTF-8
@@ -170,7 +175,21 @@ export QUOTING_STYLE=literal
 export PATH="$PATH:$HOME/.local/bin"
 
 # FZF - File Finder
-eval "$(fzf --zsh)"
+# Guarded so a box without fzf still starts a clean shell. `fzf --zsh` needs
+# fzf >= 0.48; older builds (e.g. Debian 12) ship the same setup as files.
+if command -v fzf >/dev/null 2>&1; then
+    _fzf_init="$(fzf --zsh 2>/dev/null)"
+    if [[ -n "$_fzf_init" ]]; then
+        eval "$_fzf_init"
+    else
+        for _fzf_file in /usr/share/doc/fzf/examples/key-bindings.zsh \
+                         /usr/share/doc/fzf/examples/completion.zsh; do
+            [[ -r "$_fzf_file" ]] && source "$_fzf_file"
+        done
+        unset _fzf_file
+    fi
+    unset _fzf_init
+fi
 
 # # In order to reattach the screen with the SSH ForwardAgent
 # # We need this method on the servers/remote machines:
