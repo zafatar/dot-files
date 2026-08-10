@@ -18,7 +18,7 @@ A robust dotfiles configuration with automated installation, backup, and verific
 - **ZSH** with Oh My Zsh
 - **Custom aliases** for productivity
 - **Git aliases** for version control
-- **iTerm color tab support** (macOS)
+- **AWS helpers** for EC2/AMI and S3 listings
 - **Auto-completion** enhancements
 
 ### Editor Configuration
@@ -35,7 +35,7 @@ A robust dotfiles configuration with automated installation, backup, and verific
 ### Development Tools
 - **Git** configuration and aliases
 - **FZF** integration for fuzzy finding
-- **Modern CLI tools** (bat, exa, fd)
+- **Modern CLI tools** (bat, eza, fd, duf)
 - **Productivity aliases** and functions
 
 ## 🚀 Quick Start
@@ -127,48 +127,63 @@ That's it! The installer will:
 
 ```
 .dot-files/
-├── install.sh              # Main installer script
-├── .zshrc                   # ZSH configuration
-├── config/
-│   └── dotfiles.yaml       # Configuration file
+├── install.sh                    # Main installer script
+├── .zshrc                        # ZSH configuration
 ├── install/
-│   ├── mac-install.sh       # macOS-specific setup
-│   └── linux-install.sh    # Linux-specific setup
+│   ├── mac-install.sh            # macOS-specific setup (Homebrew)
+│   ├── linux-deb-install.sh      # Debian/Ubuntu setup (apt)
+│   └── linux-arch-install.sh     # Arch setup (yay)
 ├── scripts/
-│   ├── .aliases.sh          # General aliases
-│   ├── .aliases-git.sh      # Git aliases
+│   ├── .aliases.sh               # General aliases
+│   ├── .aliases-git.sh           # Git aliases
+│   ├── .functions.sh             # Shell helper functions
+│   ├── .aws.sh                   # Loads the AWS helpers below
+│   ├── .aws_ec2.sh               # EC2 / AMI listing helpers
+│   ├── .aws_s3.sh                # S3 bucket listing helpers
 │   └── utils/
-│       ├── backup.sh        # Backup utility
-│       └── verify.sh        # Verification utility
+│       ├── backup.sh             # Backup utility
+│       └── verify.sh             # Verification utility
 ├── .config/
-│   └── emacs/              # Emacs configuration
-│       ├── init.el         # Main Emacs config
-│       ├── early-init.el   # Early initialization
-│       ├── config.org      # Org-mode configuration
+│   └── emacs/                    # Emacs configuration
+│       ├── init.el               # Main Emacs config
+│       ├── early-init.el         # Early initialization
+│       ├── config.org            # Org-mode configuration
 │       └── themes/
-│           └── zenburn-theme.el # Custom theme
-└── README.md               # This file
+│           └── zenburn-theme.el  # Custom theme
+└── README.md                     # This file
 ```
 
 ## ⚙️ Configuration
 
-The installation behavior can be customized by editing `config/dotfiles.yaml`:
+There is no separate config file — the installer is configured in place:
 
-```yaml
-# Enable/disable features
-options:
-  set_default_shell: true
-  install_oh_my_zsh: true
-  install_packages: true
-  create_backup: true
-  verify_installation: true
+| What | Where |
+| --- | --- |
+| Which files get symlinked | `create_symlinks` in `install.sh` |
+| Which files get backed up | `create_backup` in `install.sh` |
+| Which ZSH plugins get installed | `install_zsh_plugins` in `install.sh` |
+| Which system packages get installed | `install/<platform>-install.sh` |
+| What `verify.sh` checks | `check_symlinks` / `check_zsh_plugins` in `scripts/utils/verify.sh` |
 
-# Customize symlinks
-symlinks:
-  ~/.zshrc: .zshrc
-  ~/.aliases.sh: scripts/.aliases.sh
-  # Add your own...
-```
+When adding a symlink, add it to **both** `create_symlinks` (`install.sh`) and
+`check_symlinks` (`verify.sh`), otherwise verification will not cover it.
+
+### Package lists
+
+The three platform installers install the same tool set. When adding a package,
+add it to all three:
+
+| Tool | macOS (brew) | Debian/Ubuntu (apt) | Arch (yay) |
+| --- | --- | --- | --- |
+| `bat` | `bat` | `bat` → binary `batcat` | `bat` |
+| `fd` | `fd` | `fd-find` → binary `fdfind` | `fd` |
+| `eza` | `eza` | `eza` (Debian 13 / Ubuntu 24.04+) | `eza` |
+| `telnet` | `telnet` | `telnet` or `inetutils-telnet` | `inetutils` |
+
+Debian's `batcat`/`fdfind` binaries are aliased back to `bat`/`fd` in
+`scripts/.aliases.sh`, so the same command works everywhere. The apt installer
+skips packages the running release does not have (with a warning) instead of
+aborting, since `eza` and `fastfetch` are missing on older releases.
 
 ## 🔧 Customization
 
@@ -184,18 +199,14 @@ alias shortcuts="echo 'My shortcuts'"
 
 ### Adding ZSH Plugins
 
-Add new plugins to `config/dotfiles.yaml`:
-
-```yaml
-zsh_plugins:
-  - name: my-plugin
-    url: https://github.com/user/my-plugin
-    description: "My custom plugin"
-```
+Add the plugin to the `plugins` array in `install_zsh_plugins` (`install.sh`),
+to `expected_plugins` in `scripts/utils/verify.sh`, and to the `plugins=(...)`
+list in `.zshrc` so ZSH actually loads it.
 
 ### Platform-Specific Setup
 
-Customize `install/mac-install.sh` or `install/linux-install.sh` for your specific needs.
+Customize `install/mac-install.sh`, `install/linux-deb-install.sh`, or
+`install/linux-arch-install.sh` for your specific needs.
 
 ## 🛠️ Troubleshooting
 
@@ -269,7 +280,7 @@ ls -la ~/.dotfiles-backup-*
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Released under the MIT License.
 
 ## 🙏 Acknowledgments
 

@@ -58,10 +58,13 @@ check_symlinks() {
     
     log "INFO" "Checking symlinks..."
     
+    # Keep this list in sync with create_symlinks in install.sh.
     local expected_symlinks=(
         "$HOME/.zshrc:$DOTFILES_DIR/.zshrc"
-        "$HOME/.aliases.sh:$DOTFILES_DIR/scripts/.aliases.sh" 
+        "$HOME/.aliases.sh:$DOTFILES_DIR/scripts/.aliases.sh"
         "$HOME/.aliases-git.sh:$DOTFILES_DIR/scripts/.aliases-git.sh"
+        "$HOME/.aws.sh:$DOTFILES_DIR/scripts/.aws.sh"
+        "$HOME/.functions.sh:$DOTFILES_DIR/scripts/.functions.sh"
     )
     
     # Optional symlinks (only check if source exists)
@@ -102,11 +105,12 @@ check_symlinks() {
                 fi
             else
                 log "ERROR" "Symlink mismatch: $target -> $actual_source (expected: $expected_source)"
-                ((errors++))
+                errors=$((errors + 1))
                 
                 if [[ "$fix" == true ]]; then
                     log "INFO" "Fixing symlink: $target"
                     rm -f "$target"
+                    mkdir -p "$(dirname "$target")"
                     ln -s "$expected_source" "$target"
                     log "SUCCESS" "Fixed symlink: $target"
                 fi
@@ -116,15 +120,17 @@ check_symlinks() {
             if [[ "$fix" == true ]]; then
                 log "INFO" "Converting to symlink: $target"
                 rm -f "$target"
+                mkdir -p "$(dirname "$target")"
                 ln -s "$expected_source" "$target"
                 log "SUCCESS" "Converted to symlink: $target"
             fi
         else
             log "ERROR" "Missing symlink: $target"
-            ((errors++))
+            errors=$((errors + 1))
             
             if [[ "$fix" == true ]]; then
                 log "INFO" "Creating symlink: $target"
+                mkdir -p "$(dirname "$target")"
                 ln -s "$expected_source" "$target"
                 log "SUCCESS" "Created symlink: $target"
             fi
@@ -149,7 +155,7 @@ check_zsh_plugins() {
     
     if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
         log "ERROR" "Oh My Zsh not installed"
-        ((errors++))
+        errors=$((errors + 1))
         return $errors
     fi
     
@@ -172,7 +178,7 @@ check_zsh_plugins() {
             fi
         else
             log "ERROR" "Missing plugin: $plugin_name"
-            ((errors++))
+            errors=$((errors + 1))
             
             if [[ "$fix" == true ]]; then
                 log "INFO" "Installing plugin: $plugin_name"
@@ -217,7 +223,7 @@ check_shell_config() {
         fi
     else
         log "ERROR" "ZSH not found in PATH"
-        ((errors++))
+        errors=$((errors + 1))
     fi
     
     # Check .zshrc syntax
@@ -228,11 +234,11 @@ check_shell_config() {
             fi
         else
             log "ERROR" ".zshrc has syntax errors"
-            ((errors++))
+            errors=$((errors + 1))
         fi
     else
         log "ERROR" ".zshrc not found"
-        ((errors++))
+        errors=$((errors + 1))
     fi
     
     # Check for common issues in .zshrc
@@ -302,32 +308,36 @@ run_all_checks() {
     local check_shell="$5"
     
     local total_errors=0
-    
+    local rc
+
     echo "🔍 Dotfiles Verification Report"
     echo "==============================="
     echo
-    
+
+    # Each check returns its error count. Under `set -e` a bare call to a
+    # function returning non-zero aborts the script, so capture the status
+    # with `|| rc=$?` to keep every check running and reach the summary.
     if [[ "$check_links" == true || "$check_links" == "all" ]]; then
-        check_symlinks "$verbose" "$fix"
-        total_errors=$((total_errors + $?))
+        rc=0; check_symlinks "$verbose" "$fix" || rc=$?
+        total_errors=$((total_errors + rc))
         echo
     fi
-    
+
     if [[ "$check_plugins" == true || "$check_plugins" == "all" ]]; then
-        check_zsh_plugins "$verbose" "$fix"
-        total_errors=$((total_errors + $?))
+        rc=0; check_zsh_plugins "$verbose" "$fix" || rc=$?
+        total_errors=$((total_errors + rc))
         echo
     fi
-    
+
     if [[ "$check_shell" == true || "$check_shell" == "all" ]]; then
-        check_shell_config "$verbose"
-        total_errors=$((total_errors + $?))
+        rc=0; check_shell_config "$verbose" || rc=$?
+        total_errors=$((total_errors + rc))
         echo
     fi
-    
+
     if [[ "$check_links" == "all" ]]; then
-        check_file_permissions "$verbose"
-        total_errors=$((total_errors + $?))
+        rc=0; check_file_permissions "$verbose" || rc=$?
+        total_errors=$((total_errors + rc))
         echo
     fi
     
@@ -392,7 +402,9 @@ main() {
         esac
     done
     
-    run_all_checks "$verbose" "$fix" "$check_links" "$check_plugins" "$check_shell"
+    local rc=0
+    run_all_checks "$verbose" "$fix" "$check_links" "$check_plugins" "$check_shell" || rc=$?
+    exit $rc
 }
 
 main "$@" 
