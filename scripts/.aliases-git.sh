@@ -43,12 +43,13 @@ alias gsts='git stash save'
 function glf() { git log --all --grep="$1"; }
 
 function git-list-branches() { 
+    local base="${1:-main}"
     local idx=0
     git for-each-ref --sort=-committerdate refs/remotes/origin \
         --format='%(refname:short)|%(committerdate:relative)|%(authorname)' | \
     while IFS='|' read -r branch reldate author; do
         [ "$branch" = "origin/HEAD" ] && continue
-        counts=$(git rev-list --left-right --count develop..."$branch" 2>/dev/null) || continue
+        counts=$(git rev-list --left-right --count "$base"..."$branch" 2>/dev/null) || continue
         ahead=$(echo "$counts" | awk '{print $2}')
         behind=$(echo "$counts" | awk '{print $1}')
         idx=$((idx + 1))
