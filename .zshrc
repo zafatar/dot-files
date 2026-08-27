@@ -11,6 +11,31 @@ fi
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
+# Startup settings for oh-my-zsh. Each of these removes work that otherwise
+# happens on *every* shell start:
+#   SHORT_HOST          - omz otherwise forks `scutil --get LocalHostName`.
+#                         $HOST holds the same value, so $ZSH_COMPDUMP keeps
+#                         its existing filename and no cache is invalidated.
+#   ZSH_DISABLE_COMPFIX - skips compaudit, which stats every fpath directory.
+#   omz:update disabled - skips check_for_upgrade.sh, which forks git twice.
+#                         Updates are still available on demand via `update`.
+SHORT_HOST="${HOST%%.*}"
+ZSH_DISABLE_COMPFIX=true
+zstyle ':omz:update' mode disabled
+
+# On macOS, omz probes `ls` and `gls` with real subprocesses just to pick a
+# colour flag, then sets `alias ls='ls -G'` - which .aliases.sh overwrites with
+# `ls -laG` further down anyway. Skip the probing and export the two colour
+# variables verbatim from lib/theme-and-appearance.zsh instead.
+#
+# Linux is deliberately left alone: there omz builds LS_COLORS from `dircolors`,
+# which gives a richer palette than the hardcoded fallback below.
+if [[ "$OSTYPE" == darwin* ]]; then
+    DISABLE_LS_COLORS=true
+    export LSCOLORS="Gxfxcxdxbxegedabagacad"
+    export LS_COLORS="di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43"
+fi
+
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
@@ -38,8 +63,7 @@ BULLETTRAIN_TIME_FG="white"
 # Uncomment the following line to disable bi-weekly auto-update checks.
 # DISABLE_AUTO_UPDATE="true"
 
-# Uncomment the following line to change how often to auto-update (in days).
-export UPDATE_ZSH_DAYS=7
+# Auto-update is disabled near the top of this file; run `update` by hand.
 
 # Uncomment the following line to disable colors in ls.
 # DISABLE_LS_COLORS="true"
@@ -121,7 +145,21 @@ source $ZSH/oh-my-zsh.sh
 # below again, so PATH grows without bound.
 typeset -U path PATH
 
-export PATH=/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/local/go/bin/:/opt/apache-maven-3.5.2/bin:$PATH
+# Only prepend directories that exist - a missing PATH entry costs a failed stat
+# on every command lookup for the life of the shell, and seven of the entries
+# this file used to add are absent on this machine. The order below reproduces
+# what the original run of separate `export PATH=` lines produced: entries later
+# in the list end up earlier in $PATH.
+for _dir in /opt/local/bin /opt/local/sbin /usr/local/bin /usr/local/go/bin \
+            /opt/apache-maven-3.5.2/bin /usr/local/sbin \
+            /usr/local/opt/libpq/bin "$HOME/.gem/ruby/2.6.0/bin" \
+            /opt/homebrew/opt/libpq/bin; do
+    [[ -d "$_dir" ]] && path=("$_dir" $path)
+done
+# ~/.local/bin (pipx) was *appended* by the original file, so it must not shadow
+# anything earlier on PATH.
+[[ -d "$HOME/.local/bin" ]] && path+=("$HOME/.local/bin")
+unset _dir
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -143,7 +181,9 @@ DEFAULT_USER="$USER"
 # )
 
 prompt_context() {
-   prompt_segment red white "$(date '+%Y-%m-%d %H:%M:%S') > $USER"
+   # ${(%):-%D{...}} formats the time in-process; $(date ...) forked a process
+   # on every prompt redraw.
+   prompt_segment red white "${(%):-%D{%Y-%m-%d %H:%M:%S\}} > $USER"
 }
 
 prompt_dir() {
@@ -153,34 +193,35 @@ prompt_dir() {
 # prompt_git() {
 # }
 
-# compinit already called by oh-my-zsh, only bashcompinit needed for terraform
-autoload -U +X bashcompinit && bashcompinit
+# Terraform ships a bash-style completion, so it needs bashcompinit (compinit
+# itself already ran inside oh-my-zsh). Guarded on terraform actually being
+# installed: the old line hardcoded /usr/local/bin/terraform, which does not
+# exist on Apple Silicon, so it registered a completion for a missing binary.
+# $commands[] is a zsh hash lookup, so the check costs no fork.
+if (( $+commands[terraform] )); then
+    autoload -U +X bashcompinit && bashcompinit
+    complete -o nospace -C "$commands[terraform]" terraform
+fi
 
-complete -o nospace -C /usr/local/bin/terraform terraform
-
-# PATH updates
-export PATH="/usr/local/sbin:$PATH"
-
-export PATH="/usr/local/opt/libpq/bin:$PATH"
-
-export PATH="${HOME}/.gem/ruby/2.6.0/bin:$PATH"
-
-# GPG requires TTY
-export GPG_TTY=$(tty)
+# GPG requires TTY. $TTY is maintained by zsh, so this avoids forking `tty`.
+export GPG_TTY=$TTY
 
 # Set the default quoting style to literal
 export QUOTING_STYLE=literal
 
-# Created by `pipx`
-export PATH="$PATH:$HOME/.local/bin"
-
 # FZF - File Finder
 # Guarded so a box without fzf still starts a clean shell. `fzf --zsh` needs
 # fzf >= 0.48; older builds (e.g. Debian 12) ship the same setup as files.
-if command -v fzf >/dev/null 2>&1; then
-    _fzf_init="$(fzf --zsh 2>/dev/null)"
-    if [[ -n "$_fzf_init" ]]; then
-        eval "$_fzf_init"
+if (( $+commands[fzf] )); then
+    # Cache `fzf --zsh` so a normal start sources a file instead of forking fzf.
+    # Regenerated whenever the fzf binary is newer than the cache.
+    _fzf_cache="${XDG_CACHE_HOME:-$HOME/.cache}/fzf-init.zsh"
+    if [[ ! -s "$_fzf_cache" || "$commands[fzf]" -nt "$_fzf_cache" ]]; then
+        mkdir -p "${_fzf_cache:h}"
+        fzf --zsh >| "$_fzf_cache" 2>/dev/null
+    fi
+    if [[ -s "$_fzf_cache" ]]; then
+        source "$_fzf_cache"
     else
         for _fzf_file in /usr/share/doc/fzf/examples/key-bindings.zsh \
                          /usr/share/doc/fzf/examples/completion.zsh; do
@@ -188,7 +229,7 @@ if command -v fzf >/dev/null 2>&1; then
         done
         unset _fzf_file
     fi
-    unset _fzf_init
+    unset _fzf_cache
 fi
 
 # # In order to reattach the screen with the SSH ForwardAgent
@@ -203,8 +244,6 @@ if [ -z "${STY}" -a -t 0 ]; then
         exec screen -r -d ${1:+"$@"}
     }
 fi
-
-export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
