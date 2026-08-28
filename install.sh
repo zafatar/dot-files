@@ -93,6 +93,7 @@ create_backup() {
     # Keep this list in sync with create_symlinks below.
     local files_to_backup=(
         "$HOME/.zshrc"
+        "$HOME/.zprofile"
         "$HOME/.aliases.sh"
         "$HOME/.aliases-git.sh"
         "$HOME/.aws.sh"
@@ -215,6 +216,7 @@ install_zsh_plugins() {
 create_symlinks() {
     local symlinks=(
         ".zshrc:$DOTFILES_DIR/.zshrc"
+        ".zprofile:$DOTFILES_DIR/.zprofile"
         ".aliases.sh:$DOTFILES_DIR/scripts/.aliases.sh"
         ".aliases-git.sh:$DOTFILES_DIR/scripts/.aliases-git.sh"
         ".aws.sh:$DOTFILES_DIR/scripts/.aws.sh"
@@ -329,10 +331,11 @@ verify_installation() {
     # Check symlinks
     local expected_symlinks=(
         "$HOME/.zshrc"
+        "$HOME/.zprofile"
         "$HOME/.aliases.sh"
         "$HOME/.aliases-git.sh"
     )
-    
+
     # Add Emacs symlinks if they should exist
     if [[ -d "$DOTFILES_DIR/.config/emacs" ]]; then
         if [[ -f "$DOTFILES_DIR/.config/emacs/init.el" ]]; then

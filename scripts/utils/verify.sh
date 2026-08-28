@@ -61,6 +61,7 @@ check_symlinks() {
     # Keep this list in sync with create_symlinks in install.sh.
     local expected_symlinks=(
         "$HOME/.zshrc:$DOTFILES_DIR/.zshrc"
+        "$HOME/.zprofile:$DOTFILES_DIR/.zprofile"
         "$HOME/.aliases.sh:$DOTFILES_DIR/scripts/.aliases.sh"
         "$HOME/.aliases-git.sh:$DOTFILES_DIR/scripts/.aliases-git.sh"
         "$HOME/.aws.sh:$DOTFILES_DIR/scripts/.aws.sh"
@@ -280,6 +281,7 @@ check_file_permissions() {
     
     local files_to_check=(
         "$HOME/.zshrc"
+        "$HOME/.zprofile"
         "$HOME/.aliases.sh"
         "$HOME/.aliases-git.sh"
     )

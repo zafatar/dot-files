@@ -128,7 +128,8 @@ That's it! The installer will:
 ```
 .dot-files/
 ├── install.sh                    # Main installer script
-├── .zshrc                        # ZSH configuration
+├── .zshrc                        # ZSH configuration (interactive shells)
+├── .zprofile                     # ZSH configuration (login shells: Homebrew, Python, etc.)
 ├── install/
 │   ├── mac-install.sh            # macOS-specific setup (Homebrew)
 │   ├── linux-deb-install.sh      # Debian/Ubuntu setup (apt)

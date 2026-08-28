@@ -55,6 +55,7 @@ EOF
 get_dotfiles_list() {
     local files=(
         "$HOME/.zshrc"
+        "$HOME/.zprofile"
         "$HOME/.aliases.sh"
         "$HOME/.aliases-git.sh"
         "$HOME/.color-tab.iterm.sh"
