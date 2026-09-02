@@ -6,8 +6,14 @@ alias cpssh="cat $HOME/.ssh/id_rsa.pub | pbcopy"
 
 # Misc and fun.
 alias shrug="echo '¯\_(ツ)_/¯' | pbcopy"
-alias c="clear"
 alias f="fortune"
+
+# Claude Code
+alias c="claude"
+alias cr="claude --resume"
+alias cc="claude --continue"
+alias cy="claude --dangerously-skip-permissions"
+alias cp="claude -p"
 
 # Docker Aliases.
 alias dc="docker container"
